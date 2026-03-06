@@ -1,0 +1,85 @@
+.container {
+    width: 90%;
+    background-color: var(--secondary-color);
+    border-radius: 25px;
+    margin: auto;
+    padding: 25px;
+    margin-bottom: 100px;
+  }
+  
+  .tab_box {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-bottom: 3.5px solid #c3c3c35d;
+    position: relative;
+  }
+  
+  .tab_box .tab_btn {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4f4993;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 20px;
+    /* text-shadow: 0 0 8px #ffff; */
+  }
+  
+  .tab_box .active {
+    color: var(--primary-color);
+  }
+  
+  .content_box {
+    padding: 20px;
+  }
+  
+  .content_box .content {
+    display: none;
+  }
+  
+  .line {
+    position: absolute;
+    top: 62px;
+    left: 0;
+    width: 90px;
+    height: 5px;
+    border-radius: 10px;
+    background-color: var(--primary-color);
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .content_box .content.show {
+    display: block;
+  }
+
+  .content p{
+    font-size: var(--font-size-ui);
+    line-height: 2;
+  }
+
+  .al{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .date{
+    font-size: var(--font-size-ui);
+    color: #71717174;
+    height: 10px;
+  }
+
+  .pdf{
+    width: 100%;
+    margin: auto;
+  }
+
+  .line2{
+    top: 76px;
+  }
+
+  .margin{
+    margin-top: 16px;
+  }

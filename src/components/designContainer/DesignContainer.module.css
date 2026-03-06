@@ -1,0 +1,32 @@
+.container {
+    display: flex;
+    gap: 20px;
+    width: 90%;
+    margin: auto;
+  }
+  
+  .box {
+    flex: 1;
+    height: 250px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: var(--font-size-subsection-title);
+    font-weight: bold;
+    transition: color 0.3s ease;
+  }
+  
+  .accent {
+    background-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+  
+  .primary {
+    background-color: var(--primary-color);
+    color: var(--primary-color);
+  }
+  
+  .box:hover {
+    color: #dededefe;
+  }

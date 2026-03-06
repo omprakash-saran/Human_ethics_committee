@@ -1,0 +1,21 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    minHeight: 100vh;  /* CHANGED from height: 100vh */
+}
+
+.main {
+    flex: 1;
+    width: 100%;
+}
+
+.scrollContainer {
+    width: 100vw;
+    overflow-y: auto;
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
+}
+
+.section {
+    scroll-snap-align: start;
+}

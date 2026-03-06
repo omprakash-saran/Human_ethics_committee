@@ -1,0 +1,10 @@
+.title{
+    font-size: var(--font-size-section-title);
+    font-weight: var(--font-weight-semibold);
+    padding: 10px;
+    margin: 20px 0;
+}
+
+.subcontainer{
+    padding: 20px;
+}

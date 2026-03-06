@@ -1,0 +1,95 @@
+.subcontainer {
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .block1, .block2, .block3, .contactblock {
+    margin-top: 3rem;
+    background-color: var(--bg-color);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  .head {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+  }
+  
+  .head2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+  }
+  
+  .para {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  
+  .highlight {
+    color: var(--light-accent-color);
+    font-weight: 500;
+  }
+  
+  .list {
+    list-style: disc;
+    padding-left: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  .list li {
+    margin-bottom: 0.75rem;
+  }
+  
+  .link {
+    color: var(--primary-color);
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .contactList {
+    list-style: none;
+    padding-left: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  .contactItem {
+    display: inline-flex;
+    align-items: center;
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .contactItem:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 1.5rem;
+    }
+  
+    .head {
+      font-size: 1.5rem;
+    }
+  
+    .head2 {
+      font-size: 1.25rem;
+    }
+  
+    .para, .list, .contactList {
+      font-size: 0.95rem;
+    }
+  }

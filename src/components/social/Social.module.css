@@ -1,0 +1,9 @@
+.icon {
+  transition: transform 0.3s ease;
+  margin: 5px;
+  cursor: pointer;
+  z-index: 100;
+  transform: scale(1.5);
+  color: inherit;
+  margin-top: 10px;
+}

@@ -1,0 +1,60 @@
+.block1{
+    padding: 50px 0px;
+    /* border: 1px solid; */
+    position: relative;
+    margin: 50px 50px;
+}
+
+.backimg{
+    background: url('/iitrlogotrans.png') no-repeat center center/contain;
+    position: absolute;
+    top: 0;
+    /* border: 1px solid red; */
+    height: 100%;
+    width: 100%;
+    z-index: -1;
+    opacity: 0.2;
+}
+
+.head{
+    font-size: var(--font-size-section-title);
+    font-weight: var(--font-weight-semibold);
+    padding: 10px;
+}
+
+.para{
+    font-size: var(--font-size-note);
+    font-weight: var(--font-weight-regular);
+    padding: 10px;
+}
+
+.highlight, .contactblock a{
+    color: var(--primary-color);
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.contactblock{
+    /* border: 1px solid; */
+    border-radius: 25px;
+    padding: 25px;
+    margin: 25px auto;
+    /* box-shadow: 0 0 1rem #c8c8c8; */
+    border: 2px solid var(--accent-color);
+    transition: all 0.3s ease-in-out;
+    color: #E5E7EB;
+    background-color: var(--accent-color);
+    width: 90%;
+    margin-bottom: 100px;
+}
+
+.head2{
+    font-weight: var(--font-weight-bold);
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.contactblock li{
+    margin-left: 25px;
+    line-height: 2;
+}

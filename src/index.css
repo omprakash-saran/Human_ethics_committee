@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --primary-color: #236b60;
+  --secondary-color: #E5E7EB;
+  --accent-color: #22203A;
+  --light-accent-color: #585298;
+  --text-color: #111827;
+  --bg-color: #F9FAFB;
+
+  --secondary-color-u: #1C1C1E;
+  --text-color-u: #F3F4F6;
+  --bg-color-u: #111111;
+
+
+  --font-size-page-title: clamp(2.25rem, 6vw, 3rem);         /* From large phones to desktops */
+  --font-size-section-title: clamp(1.75rem, 5vw, 2.25rem);
+  --font-size-subsection-title: clamp(1.25rem, 4.5vw, 2rem);
+  --font-size-small-section: clamp(1.25rem, 4vw, 1.5rem);
+  --font-size-body: clamp(1rem, 2.5vw, 1.125rem);             /* Keep body text subtle on mobile */
+  --font-size-note: clamp(1rem, 2.25vw, 1.1rem);
+  --font-size-ui: clamp(0.90rem, 2vw, 0.9rem);              /* UI elements, buttons, etc. */
+  
+
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-medium: 500;
+  --font-weight-regular: 400;
+}
+
+[data-theme="dark"] {
+  --primary-color: #37a897;
+  --secondary-color: #1C1C1E;
+  --accent-color: #22203A;
+  --text-color: #F3F4F6;
+  --bg-color: #111111;
+
+  --secondary-color-u: #E5E7EB;
+  --text-color-u: #111827;
+  --bg-color-u: #F9FAFB;
+}
+  
+  body {
+    background: linear-gradient(90deg,var(--secondary-color), var(--bg-color));
+    color: var(--text-color);
+    user-select: none;
+    -webkit-user-select: none;
+    line-height: 1.5;
+  }
+
+  .inputBox {
+    cursor: pointer;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Lato", cursive;
+  }
+  
+  .heading {
+    font-size: var(--heading-font-size);
+    font-weight: bold;
+    color: var(--primary-color);
+    margin: 50px 0;
+  }

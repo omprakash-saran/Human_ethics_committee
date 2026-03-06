@@ -1,0 +1,54 @@
+.container {
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.faqItem {
+  border-bottom: 1px solid #8e8e8e65;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.question {
+  padding: 1rem;
+  cursor: pointer;
+  font-size: var(--font-size-note);
+  font-weight: 600;
+  background-color: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: var(--text-color);
+}
+
+.answerWrapper {
+  overflow: hidden;
+  max-height: 0;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.questionOpen{
+  color: #4f4993;
+}
+
+.answerWrapper.open {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.answerText {
+  padding: 0 1rem 1rem;
+  font-size: var(--font-size-ui);
+  line-height: 1.6;
+}
+
+.description{
+  font-weight: 400;
+  color: #767676b0;
+}
+
+.pdf{
+  margin-top: 20px;
+}
