@@ -55,7 +55,12 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // Proposal Schema
 const proposalSchema = new mongoose.Schema({
-  researcherName: {
+  projectId: { 
+        type: String, 
+        unique: true, 
+        required: true 
+    },
+    researcherName: {
     type: String,
     required: true
   },
@@ -65,14 +70,6 @@ const proposalSchema = new mongoose.Schema({
   },
   projectTitle: {
     type: String,
-    required: true
-  },
-  startDate: {
-    type: Date,
-    required: true
-  },
-  endDate: {
-    type: Date,
     required: true
   },
   pdfFileName: String,
@@ -156,7 +153,7 @@ transporter.verify((error, success) => {
 // API Route: Submit Proposal with PDF (OPTIMIZED)
 app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
   try {
-    const { researcherName, email, projectTitle, startDate, endDate } = req.body;
+    const { researcherName, email, projectTitle} = req.body;
 
     console.log('\n📨 ========== NEW PROPOSAL SUBMISSION ==========');
     console.log('📨 Received Form Data:');
@@ -186,20 +183,6 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
       });
     }
 
-    if (!startDate) {
-      return res.status(400).json({ 
-        message: 'Start date is required',
-        success: false
-      });
-    }
-
-    if (!endDate) {
-      return res.status(400).json({ 
-        message: 'End date is required',
-        success: false
-      });
-    }
-
     if (!req.file) {
       return res.status(400).json({ 
         message: 'PDF file is required',
@@ -209,13 +192,18 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
 
     console.log('✅ All validations passed!');
 
+    const currentYear = new Date().getFullYear();
+    const randomNum = Math.floor(1000 + Math.random() * 9000); // 4 digit random number
+    const generatedProjectId = `IHEC-${currentYear}-${randomNum}`;
+    
+    console.log(`🆔 Generated Project ID: ${generatedProjectId}`);
+
     // STEP 1: Save to database FIRST (fast operation)
     const proposal = new Proposal({
+      projectId: generatedProjectId,
       researcherName: researcherName.trim(),
       email: email.trim(),
       projectTitle: projectTitle.trim(),
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
       pdfFileName: req.file.originalname,
       pdfFilePath: `/uploads/${req.file.filename}`
     });
@@ -226,6 +214,7 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
     // STEP 2: Return success to user IMMEDIATELY ⚡
     res.status(201).json({
       message: 'Proposal submitted successfully!',
+      projectId: generatedProjectId, 
       proposalId: proposal._id,
       pdfPath: proposal.pdfFilePath,
       success: true
@@ -242,38 +231,15 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
       to: email.trim(),
       subject: 'Proposal Submission Confirmation - IIT Roorkee Ethics Committee',
       html: `
-        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #236b60 0%, #1a5349 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-            <h2 style="margin: 0; font-size: 28px;">✅ Proposal Submitted Successfully</h2>
-          </div>
-          
-          <div style="padding: 20px; background: #f9fafb; border-radius: 0 0 8px 8px;">
-            <p style="font-size: 16px; margin-bottom: 15px;">Dear <strong>${researcherName}</strong>,</p>
-            
-            <p style="font-size: 15px; line-height: 1.6;">Your research proposal has been successfully submitted to the IIT Roorkee Ethics Committee.</p>
-            
-            <div style="background: white; padding: 15px; border-left: 4px solid #236b60; margin: 20px 0;">
-              <h3 style="margin-top: 0; color: #236b60;">Submission Details:</h3>
-              <ul style="list-style: none; padding: 0; margin: 10px 0;">
-                <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>📋 Project Title:</strong> ${projectTitle}</li>
-                <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>📄 File Name:</strong> ${req.file.originalname}</li>
-                <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>📅 Submitted On:</strong> ${new Date().toLocaleDateString()}</li>
-                <li style="padding: 8px 0;"><strong>⏳ Status:</strong> <span style="color: #f59e0b; font-weight: bold;">Pending Review</span></li>
-              </ul>
-            </div>
-            
-            <p style="font-size: 15px; line-height: 1.6;">The Ethics Committee will review your proposal within 2-3 weeks.</p>
-            
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-            <p style="font-size: 12px; color: #999; margin: 0;">
-              Best regards,<br/>
-              <strong>IIT Roorkee Ethics Committee</strong>
-            </p>
-          </div>
-        </div>
-      `
-    };
-
+                <h3>Dear ${researcherName},</h3>
+                <p>Your research proposal titled <b>"${projectTitle}"</b> has been successfully submitted to the Institutional Human Ethics Committee.</p>
+                <br/>
+                <p><b>IMPORTANT:</b> Your unique Project ID is <b>${generatedProjectId}</b>.</p>
+                <p>Please save this ID safely. If the committee requests changes, you will need this ID to resubmit your updated PDF.</p>
+                <br/>
+                <p>Regards,<br/>IHEC Committee, IIT Roorkee</p>
+            `
+        };
     // Send to researcher (background - no await)
     transporter.sendMail(mailToResearcher, (error, info) => {
       if (error) {
@@ -344,6 +310,186 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
 
     res.status(500).json({
       message: 'Error submitting proposal',
+      error: error.message,
+      success: false
+    });
+  }
+});
+
+// ============================================
+// API Route: RESUBMIT Proposal with Updated PDF
+// ============================================
+app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) => {
+  try {
+    const { projectId, researcherName, email } = req.body;
+
+    console.log('\n📨 ========== PROPOSAL RESUBMISSION ==========');
+    console.log('📨 Received Resubmission Data:');
+    console.log('   - Project ID:', projectId);
+    console.log('   - Name:', researcherName);
+    console.log('   - Email:', email);
+
+    // VALIDATIONS
+    if (!projectId || projectId.trim() === '') {
+      return res.status(400).json({ 
+        message: 'Project ID is required',
+        success: false
+      });
+    }
+
+    if (!researcherName || researcherName.trim() === '') {
+      return res.status(400).json({ 
+        message: 'Researcher name is required',
+        success: false
+      });
+    }
+
+    if (!email || email.trim() === '') {
+      return res.status(400).json({ 
+        message: 'Email address is required',
+        success: false
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ 
+        message: 'PDF file is required for resubmission',
+        success: false
+      });
+    }
+
+    console.log('✅ All validations passed!');
+
+    // Find existing proposal by projectId
+    const existingProposal = await Proposal.findOne({ projectId: projectId.trim() });
+
+    if (!existingProposal) {
+      return res.status(404).json({ 
+        message: 'Project ID not found. Please check and try again.',
+        success: false
+      });
+    }
+
+    console.log('✅ Found existing proposal:', existingProposal._id);
+
+    // Delete old PDF file if it exists
+    if (existingProposal.pdfFilePath) {
+      const oldFilePath = path.join(__dirname, existingProposal.pdfFilePath);
+      fs.unlink(oldFilePath, (err) => {
+        if (err) console.log('Note: Could not delete old file:', err.message);
+        else console.log('🗑️ Old PDF file deleted');
+      });
+    }
+
+    // Update proposal with new PDF
+    existingProposal.researcherName = researcherName.trim();
+    existingProposal.email = email.trim();
+    existingProposal.pdfFileName = req.file.originalname;
+    existingProposal.pdfFilePath = `/uploads/${req.file.filename}`;
+    existingProposal.submittedAt = new Date(); // Update submission date
+    existingProposal.status = 'Pending'; // Reset status to pending
+
+    await existingProposal.save();
+    console.log('💾 Proposal resubmission saved to MongoDB:', existingProposal._id);
+
+    // Return success to user IMMEDIATELY
+    res.status(200).json({
+      message: 'Proposal resubmitted successfully!',
+      projectId: projectId, 
+      proposalId: existingProposal._id,
+      pdfPath: existingProposal.pdfFilePath,
+      success: true
+    });
+
+    console.log('✅ Response sent to user');
+
+    // Send emails in BACKGROUND
+
+    // Email to researcher
+    const mailToResearcher = {
+      from: process.env.GMAIL_USER,
+      to: email.trim(),
+      subject: 'Proposal Resubmission Confirmation - IIT Roorkee Ethics Committee',
+      html: `
+        <h3>Dear ${researcherName},</h3>
+        <p>Your updated research proposal has been successfully resubmitted to the Institutional Human Ethics Committee.</p>
+        <br/>
+        <p><b>Project ID:</b> <b>${projectId}</b></p>
+        <p>Your proposal is now under review again. We will notify you once the committee has reviewed the changes.</p>
+        <br/>
+        <p>Regards,<br/>IHEC Committee, IIT Roorkee</p>
+      `
+    };
+
+    transporter.sendMail(mailToResearcher, (error, info) => {
+      if (error) {
+        console.log('❌ Error sending resubmission email to researcher:', error.message);
+      } else {
+        console.log('📧 Resubmission confirmation email sent to researcher:', email);
+      }
+    });
+
+    // Email to committee
+    const mailToCommittee = {
+      from: process.env.GMAIL_USER,
+      to: 'ops052005@gmail.com',  // Change to committee email later
+      subject: `[RESUBMITTED PROPOSAL] ${projectId} - ${researcherName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+          <div style="background: #236b60; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+            <h2 style="margin: 0; font-size: 24px;">🔄 Proposal Resubmitted</h2>
+          </div>
+          
+          <div style="padding: 20px; background: #f9fafb; border-radius: 0 0 8px 8px;">
+            <h3 style="color: #236b60; margin-top: 0;">Resubmission Information:</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>📋 Project ID:</strong> ${projectId}</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>👤 Name:</strong> ${researcherName}</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>📧 Email:</strong> ${email}</li>
+              <li style="padding: 8px 0;"><strong>📎 PDF:</strong> ${req.file.originalname}</li>
+            </ul>
+
+            <div style="background: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+              <strong>⚠️ Note:</strong> This is a resubmission. The proposal status has been reset to "Pending" for re-review.
+            </div>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+            <p style="font-size: 12px; color: #999; margin: 0;">
+              Resubmitted: ${new Date().toLocaleString()}
+            </p>
+          </div>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: req.file.originalname,
+          path: path.join(__dirname, req.file.path)
+        }
+      ]
+    };
+
+    transporter.sendMail(mailToCommittee, (error, info) => {
+      if (error) {
+        console.log('❌ Error sending resubmission email to committee:', error.message);
+      } else {
+        console.log('📧 Resubmission notification sent to committee');
+      }
+    });
+
+    console.log('✅ RESUBMISSION COMPLETE (emails sending in background)');
+    console.log('================================================\n');
+
+  } catch (error) {
+    console.error('❌ ERROR:', error.message);
+    
+    if (req.file) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.log('Error deleting file:', err);
+      });
+    }
+
+    res.status(500).json({
+      message: 'Error resubmitting proposal',
       error: error.message,
       success: false
     });
