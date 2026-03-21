@@ -28,7 +28,7 @@ const SecondaryTabsLetter = () => {
       <div className={`${styles.content_box}`}>
         <div className={`${styles.content} ${flag === 0 ? styles.show : ''}`}> 
           <object class={styles.pdf} 
-            data="/docs/CurrentCommitteeMembers.pdf"
+            data="/docs/CurrentCommitteeMembers1.pdf"
             height="800">
           </object>
         </div>

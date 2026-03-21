@@ -29,7 +29,7 @@ const ProfileCard = ({
                 src={`/committee/${index + 1}.png`}
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '/committee/female-avatar.png';
+                  e.target.src = person.gender === 'female' ? "/committee/female-avatar.png"  : "/committee/male-avatar.png";
                 }}
                 alt="profile"
                 className={styles.img}
