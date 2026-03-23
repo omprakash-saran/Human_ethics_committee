@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './Applications.module.css';
 
 export default function Applications() {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
   const [activeTab, setActiveTab] = useState('new');
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [formData, setFormData] = useState({
     researcherName: '',
@@ -17,6 +20,45 @@ export default function Applications() {
   const [projectId, setProjectId] = useState('');
   const [isResubmission, setIsResubmission] = useState(false); 
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkSession = async () => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/user-dashboard`, {
+          credentials: 'include'
+        });
+
+        if (response.redirected) {
+          window.location.href = response.url;
+          return;
+        }
+
+        if (response.ok) {
+          if (isMounted) {
+            setIsAuthenticated(true);
+          }
+        } else {
+          window.location.href = `${apiBaseUrl}/auth/omniport/login`;
+          return;
+        }
+      } catch (error) {
+        window.location.href = `${apiBaseUrl}/auth/omniport/login`;
+        return;
+      } finally {
+        if (isMounted) {
+          setIsAuthChecked(true);
+        }
+      }
+    };
+
+    checkSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [apiBaseUrl]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
@@ -30,7 +72,7 @@ export default function Applications() {
 
     if (file) {
       if (file.type !== 'application/pdf') {
-        setUploadError('❌ Please upload a PDF file only');
+        setUploadError('⚠ File format invalid. Only PDF files are accepted. Please convert and resubmit your document.');
         setFormData((prevState) => ({
           ...prevState,
           pdfFile: null
@@ -38,8 +80,8 @@ export default function Applications() {
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        setUploadError('❌ File size must be less than 5MB');
+      if (file.size > 20 * 1024 * 1024) {
+        setUploadError('⚠ File size exceeds the 20MB limit. Please reduce the file size by compressing or removing unnecessary content.');
         setFormData((prevState) => ({
           ...prevState,
           pdfFile: null
@@ -61,41 +103,40 @@ export default function Applications() {
     setUploadError('');
 
     if (!formData.pdfFile) {
-      setUploadError('❌ Please upload a PDF file');
-      return;
-    }
-
-    if (activeTab === 'new') {
-      if (!formData.researcherName.trim()) {
-        setUploadError('❌ Please enter researcher name');
+        setUploadError('⚠ Research proposal document is required. Please upload a PDF file to proceed.');
         return;
       }
 
-      if (!formData.email.trim()) {
-        setUploadError('❌ Please enter email address');
-        return;
+      if (activeTab === 'new') {
+        if (!formData.researcherName.trim()) {
+          setUploadError('⚠ Researcher name is mandatory. Please provide your full name to continue.');
+          return;
+        }
+
+        if (!formData.email.trim()) {
+          setUploadError('⚠ Email address is required. Please enter a valid email for communication.');
+          return;
+        }
+
+        if (!formData.projectTitle.trim()) {
+          setUploadError('⚠ Project title is necessary. Please provide a descriptive title for your research.');
+          return;
+        }
       }
 
-      if (!formData.projectTitle.trim()) {
-        setUploadError('❌ Please enter project title');
-        return;
-      }
-    }
+      if (activeTab === 'resubmit') {
+        if (!formData.projectId.trim()) {
+          setUploadError('⚠ Project ID is required. Please enter the ID from your initial submission.');
+          return;
+        }
 
-    if (activeTab === 'resubmit') {
-      if (!formData.projectId.trim()) {
-        setUploadError('❌ Please enter your Project ID');
-        return;
-      }
+        if (!formData.researcherName.trim()) {
+          setUploadError('⚠ Researcher name is mandatory. Please provide your full name to continue.');
+          return;
+        }
 
-      if (!formData.researcherName.trim()) {
-        setUploadError('❌ Please enter researcher name');
-        return;
-      }
-
-      if (!formData.email.trim()) {
-        setUploadError('❌ Please enter email address');
-        return;
+        if (!formData.email.trim()) {
+          setUploadError('⚠ Email address is required. Please enter a valid email for communication.');
       }
     }
 
@@ -109,17 +150,18 @@ export default function Applications() {
         formDataToSend.append('projectTitle', formData.projectTitle);
         formDataToSend.append('isResubmission', 'false');
 
-        console.log('Submitting NEW proposal...'); 
+        console.log('Submitting new research proposal...'); 
 
-        const response = await fetch('http://localhost:5001/api/proposals', {
+        const response = await fetch(`${apiBaseUrl}/api/proposals`, {
           method: 'POST',
-          body: formDataToSend
+          body: formDataToSend,
+          credentials: 'include'
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          console.log('✅ Proposal submitted successfully!', data);
+          console.log('✓ Research proposal submitted successfully!', data);
           setProjectId(data.projectId);
           setIsResubmission(false);
           setShowPopup(true);
@@ -133,9 +175,11 @@ export default function Applications() {
               projectId: ''
             });
             setUploadError('');
+            const fileInput = document.getElementById('pdf-upload');
+            if (fileInput) fileInput.value = '';
           }, 3000);
         } else {
-          setUploadError('❌ Error: ' + data.message);
+          setUploadError('⚠ Submission Error: ' + data.message);
           console.error('Error:', data);
         }
       }
@@ -145,17 +189,18 @@ export default function Applications() {
         formDataToSend.append('email', formData.email);
         formDataToSend.append('isResubmission', 'true');
 
-        console.log('Submitting RESUBMISSION...'); 
+        console.log('Submitting updated research proposal...'); 
 
-        const response = await fetch('http://localhost:5001/api/proposals/resubmit', {
+        const response = await fetch(`${apiBaseUrl}/api/proposals/resubmit`, {
           method: 'POST',
-          body: formDataToSend
+          body: formDataToSend,
+          credentials: 'include'
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          console.log('✅ Proposal resubmitted successfully!', data);
+          console.log('✓ Research proposal resubmitted successfully!', data);
           setProjectId(data.projectId);
           setIsResubmission(true);
           setShowPopup(true);
@@ -169,14 +214,16 @@ export default function Applications() {
               projectId: ''
             });
             setUploadError('');
+            const fileInput = document.getElementById('pdf-upload');
+            if (fileInput) fileInput.value = '';
           }, 3000);
         } else {
-          setUploadError('❌ Error: ' + data.message);
+          setUploadError('⚠ Resubmission Error: ' + data.message);
           console.error('Error:', data);
         }
       }
     } catch (error) {
-      setUploadError('❌ Error submitting form: ' + error.message);
+      setUploadError('⚠ An error occurred while processing your submission. Please try again or contact support.');
       console.error('Error:', error);
     }
   };
@@ -186,21 +233,39 @@ export default function Applications() {
       researcherName: '',
       email: '',
       projectTitle: '',
-      pdfFile: null
+      pdfFile: null,
+      projectId: ''   
     });
     setUploadError('');
   };
 
   const isNew = activeTab === 'new';
 
+  if (!isAuthChecked) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.inner}>
+          <div className={styles.header}>
+            <h1 className={styles.heading}>Checking login...</h1>
+            <p className={styles.subheading}>Redirecting to Omniport if needed.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.inner}>
         {/* Header Section */}
         <div className={styles.header}>
-          <h1 className={styles.heading}>Submit Your Research Proposal</h1>
+          <h1 className={styles.heading}>Research Proposal Submission Portal</h1>
           <p className={styles.subheading}>
-            Fill out the form and upload your research proposal PDF to IIT Roorkee
+            Submit your research proposal for ethical review to the Human Ethics Committee at IIT Roorkee. Our comprehensive review process ensures adherence to international research standards.
           </p>
         </div>
 
@@ -218,10 +283,12 @@ export default function Applications() {
                 pdfFile: null,
                 projectId: ''
               });
+              const fileInput = document.getElementById('pdf-upload');
+              if (fileInput) fileInput.value = '';
             }}
             className={`${styles.tabButton} ${isNew ? styles.tabActive : ''}`}
           >
-            New Submission
+            Initial Submission
           </button>
 
           <button
@@ -236,10 +303,12 @@ export default function Applications() {
                 pdfFile: null,
                 projectId: ''
               });
+              const fileInput = document.getElementById('pdf-upload');
+              if (fileInput) fileInput.value = '';
             }}
             className={`${styles.tabButton} ${!isNew ? styles.tabActive : ''}`}
           >
-            Resubmit Proposal
+            Revised Submission
           </button>
         </div>
 
@@ -249,18 +318,12 @@ export default function Applications() {
             {/* TAB 1: NEW SUBMISSION */}
             {activeTab === 'new' && (
               <>
-                <div className={`${styles.notice} ${styles.noticeNew}`}>
-                  <p className={styles.noticeTextNew}>
-                    First time submitting? Fill in your details and upload your proposal. You'll receive a unique
-                    Project ID.
-                  </p>
-                </div>
 
                 {/* Row 1: Name and Email */}
                 <div className={styles.grid2}>
                   {/* Researcher Name */}
                   <div>
-                    <label className={styles.label}>Researcher Name *</label>
+                    <label className={styles.label}>Primary Researcher Name *</label>
                     <input
                       type="text"
                       name="researcherName"
@@ -268,14 +331,14 @@ export default function Applications() {
                       value={formData.researcherName}
                       onChange={handleInputChange}
                       required
-                      placeholder="Enter your full name"
+                      placeholder="Your Name"
                       className={styles.input}
                     />
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className={styles.label}>Email Address *</label>
+                    <label className={styles.label}>Contact Email Address *</label>
                     <input
                       type="email"
                       name="email"
@@ -283,7 +346,7 @@ export default function Applications() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      placeholder="your.email@example.com"
+                      placeholder="researcher@institution.edu"
                       className={styles.input}
                     />
                   </div>
@@ -291,7 +354,7 @@ export default function Applications() {
 
                 {/* Project Title */}
                 <div>
-                  <label className={styles.label}>Project Title *</label>
+                  <label className={styles.label}>Research Project Title *</label>
                   <input
                     type="text"
                     name="projectTitle"
@@ -299,7 +362,7 @@ export default function Applications() {
                     value={formData.projectTitle}
                     onChange={handleInputChange}
                     required
-                    placeholder="Enter your research project title"
+                    placeholder=""
                     className={styles.input}
                   />
                 </div>
@@ -309,15 +372,10 @@ export default function Applications() {
             {/* TAB 2: RESUBMISSION */}
             {activeTab === 'resubmit' && (
               <>
-                <div className={`${styles.notice} ${styles.noticeResubmit}`}>
-                  <p className={styles.noticeTextResubmit}>
-                    Resubmitting? Enter your Project ID from the original submission and upload the updated PDF.
-                  </p>
-                </div>
 
                 {/* Project ID Field */}
                 <div>
-                  <label className={styles.label}>Project ID *</label>
+                  <label className={styles.label}>Original Project ID *</label>
                   <input
                     type="text"
                     name="projectId"
@@ -325,7 +383,7 @@ export default function Applications() {
                     value={formData.projectId}
                     onChange={handleInputChange}
                     required
-                    placeholder="Enter your Project ID (e.g., PROJ-1234567890)"
+                    placeholder="Enter your Project ID"
                     className={styles.input}
                   />
                 </div>
@@ -334,7 +392,7 @@ export default function Applications() {
                 <div className={styles.grid2}>
                   {/* Researcher Name */}
                   <div>
-                    <label className={styles.label}>Researcher Name *</label>
+                    <label className={styles.label}>Primary Researcher Name *</label>
                     <input
                       type="text"
                       name="researcherName"
@@ -342,14 +400,14 @@ export default function Applications() {
                       value={formData.researcherName}
                       onChange={handleInputChange}
                       required
-                      placeholder="Enter your full name"
+                      placeholder="Your Name"
                       className={styles.input}
                     />
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className={styles.label}>Email Address *</label>
+                    <label className={styles.label}>Contact Email Address *</label>
                     <input
                       type="email"
                       name="email"
@@ -357,7 +415,7 @@ export default function Applications() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      placeholder="your.email@example.com"
+                      placeholder="researcher@institution.edu"
                       className={styles.input}
                     />
                   </div>
@@ -367,7 +425,7 @@ export default function Applications() {
 
             {/* PDF UPLOAD SECTION - Shared by both tabs */}
             <div>
-              <label className={styles.label}>Upload Proposal (PDF) *</label>
+              <label className={styles.label}>Research Proposal Document (PDF) *</label>
 
               {/* File Input - Hidden but accessible */}
               <input
@@ -404,7 +462,7 @@ export default function Applications() {
 
                     // Validate file type
                     if (file.type !== 'application/pdf') {
-                      setUploadError('❌ Please upload a PDF file only');
+                      setUploadError('⚠ File format invalid. Only PDF files are accepted. Please convert and resubmit your document.');
                       setFormData((prevState) => ({
                         ...prevState,
                         pdfFile: null
@@ -414,7 +472,7 @@ export default function Applications() {
 
                     // Validate file size (max 5MB)
                     if (file.size > 5 * 1024 * 1024) {
-                      setUploadError('❌ File size must be less than 5MB');
+                      setUploadError('⚠ File size exceeds the 5MB limit. Please reduce the file size by compressing or removing unnecessary content.');
                       setFormData((prevState) => ({
                         ...prevState,
                         pdfFile: null
@@ -431,15 +489,15 @@ export default function Applications() {
                 }}
               >
                 <div className={styles.dropIcon}>📄</div>
-                <p className={styles.dropTitle}>Click to upload or drag and drop</p>
-                <p className={styles.dropHint}>PDF up to 5MB</p>
+                <p className={styles.dropTitle}>Click to upload or drag and drop your document</p>
+                <p className={styles.dropHint}>PDF format • Maximum file size: 20MB</p>
               </div>
 
               {/* File Info */}
               {formData.pdfFile && (
                 <div className={styles.fileInfo}>
                   <span>
-                    ✅ {formData.pdfFile.name} ({(formData.pdfFile.size / 1024 / 1024).toFixed(2)}MB)
+                    ✓ {formData.pdfFile.name} ({(formData.pdfFile.size / 1024 / 1024).toFixed(2)}MB)
                   </span>
                   <button
                     type="button"
@@ -467,7 +525,7 @@ export default function Applications() {
                 {activeTab === 'new' ? 'Submit Proposal' : 'Resubmit Proposal'}
               </button>
               <button type="button" onClick={handleClear} className={styles.secondaryButton}>
-                Clear Form
+                Clear All Fields
               </button>
             </div>
           </form>
@@ -478,13 +536,11 @@ export default function Applications() {
           <p className={`${styles.infoText} ${isNew ? styles.infoTextNew : styles.infoTextResubmit}`}>
             {isNew ? (
               <>
-                <strong>Note:</strong> Your proposal PDF will be sent to the Ethics Committee. You will receive a
-                confirmation email once submitted with your unique Project ID.
+                <strong>Important Notice:</strong> Your research proposal will be reviewed by the Human Ethics Committee following institutional guidelines. A confirmation email along with your unique Project ID will be sent for tracking and future communications.
               </>
             ) : (
               <>
-                <strong>Important:</strong> Your old submission will be deleted and replaced with this updated
-                version. The Project ID will remain the same for tracking purposes.
+                <strong>Important Notice:</strong> Your revised proposal will replace the original submission in our system. The Project ID will remain unchanged for continuity tracking. The Committee will evaluate your revisions in accordance with current protocols.
               </>
             )}
           </p>
@@ -494,24 +550,24 @@ export default function Applications() {
       {/* SUCCESS POPUP MODAL */}
       {showPopup && (
         <div className={styles.popup}>
-          <div className={styles.popupIcon}>✅</div>
+          <div className={styles.popupIcon}>✓</div>
 
-          <h2 className={styles.popupTitle}>{isResubmission ? 'Proposal Resubmitted!' : 'Proposal Submitted!'}</h2>
+          <h2 className={styles.popupTitle}>{isResubmission ? 'Submission Received' : 'Submission Confirmed'}</h2>
 
           <p className={styles.popupText}>
             {isResubmission
-              ? 'Your updated proposal has been received. The old submission has been replaced.'
-              : 'An email confirmation has been sent to you. Please save your Project ID safely!'}
+              ? 'Your revised proposal has been successfully recorded. The previous version has been archived and superseded by this submission.'
+              : 'Your research proposal has been successfully submitted to the Human Ethics Committee for review. A confirmation message has been sent to your email address.'}
           </p>
 
           {/* Display the Project ID */}
           <div className={styles.projectIdBox}>
-            <span className={styles.projectIdLabel}>{isResubmission ? 'Your Project ID (Updated)' : 'Your Project ID'}</span>
+            <span className={styles.projectIdLabel}>{isResubmission ? 'Project ID (Tracking)' : 'Your Project ID'}</span>
             <span className={styles.projectIdValue}>{projectId ? projectId : 'Loading...'}</span>
           </div>
 
           <button onClick={() => setShowPopup(false)} className={styles.popupButton}>
-            {isResubmission ? 'Close' : 'I have saved my ID, Close Window'}
+            {isResubmission ? 'Complete' : 'I Understand'}
           </button>
         </div>
       )}

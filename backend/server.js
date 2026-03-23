@@ -4,11 +4,19 @@ const dotenv = require('dotenv');
 const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const session = require('express-session');
+const path = require('path');
 
 const slugify = require('slugify');
 const { uploadPdfToS3, deleteFromS3, getSignedDownloadUrl, downloadToBuffer } = require('./s3');
+const config = require('./config/oauth');
+const authRoutes = require('./routes/auth');
+const { requireAuth, requireFaculty } = require('./config/middleware/auth');
 
-dotenv.config();
+dotenv.config({
+  path: path.resolve(__dirname, '.env'),
+  override: true
+});
 
 const app = express();
 
@@ -18,6 +26,32 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Session setup for OAuth authentication
+app.use(
+  session({
+    secret: config.sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false, // set true only when using HTTPS in production
+      sameSite: 'lax'
+    }
+  })
+);
+
+// Make user available in templates (optional but useful)
+app.use((req, res, next) => {
+  res.locals.currentUser = req.session?.user || null;
+  next();
+});
+
+// Static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Auth routes mounted at /auth
+app.use('/auth', authRoutes);
 
 console.log('\n Attempting MongoDB connection...');
 console.log('URI:', process.env.MONGODB_URI ? 'Set ✅' : 'NOT SET ❌');
@@ -81,7 +115,7 @@ const proposalSchema = new mongoose.Schema({
 const Proposal = mongoose.model('Proposal', proposalSchema);
 
 const fileFilter = (req, file, cb) => {
-  console.log('📂 File received:', file.originalname, 'Type:', file.mimetype);
+  console.log('File received:', file.originalname, 'Type:', file.mimetype);
 
   if (file.mimetype === 'application/pdf') cb(null, true);
   else cb(new Error('Only PDF files are allowed'), false);
@@ -90,7 +124,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }
+  limits: { fileSize: 20 * 1024 * 1024 }
 });
 
 const transporter = nodemailer.createTransport({
@@ -146,14 +180,14 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
     }
 
     const generatedProjectId = generateProjectId();
-    console.log(`🆔 Generated Project ID: ${generatedProjectId}`);
+    console.log(`Generated Project ID: ${generatedProjectId}`);
 
     const { key: s3Key, fileName: renamedFileName } = buildS3Key({
       projectTitle: projectTitle.trim(),
       projectId: generatedProjectId
     });
 
-    console.log('☁️ Uploading PDF to S3...');
+    console.log('Uploading PDF to S3...');
     await uploadPdfToS3({
       key: s3Key,
       buffer: req.file.buffer,
@@ -197,14 +231,14 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
 
     transporter.sendMail(mailToResearcher, (error) => {
       if (error) console.log('❌ Error sending email to researcher:', error.message);
-      else console.log('📧 Email sent to researcher:', email);
+      else console.log('Email sent to researcher:', email);
     });
 
     let attachmentBuffer;
     try {
       attachmentBuffer = await downloadToBuffer(s3Key);
     } catch (e) {
-      console.log('❌ Could not download from S3 for attachment:', e.message);
+      console.log('Could not download from S3 for attachment:', e.message);
       attachmentBuffer = null;
     }
 
@@ -215,15 +249,15 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
           <div style="background: #236b60; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-            <h2 style="margin: 0; font-size: 24px;">📥 New Research Proposal Received</h2>
+            <h2 style="margin: 0; font-size: 24px;">New Research Proposal Received</h2>
           </div>
           <div style="padding: 20px; background: #f9fafb; border-radius: 0 0 8px 8px;">
             <h3 style="color: #236b60; margin-top: 0;">Researcher Information:</h3>
             <ul style="list-style: none; padding: 0;">
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>👤 Name:</strong> ${researcherName}</li>
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>📧 Email:</strong> ${email}</li>
-              <li style="padding: 8px 0;"><strong>📋 Title:</strong> ${projectTitle}</li>
-              <li style="padding: 8px 0;"><strong>🆔 Project ID:</strong> ${generatedProjectId}</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Name:</strong> ${researcherName}</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Email:</strong> ${email}</li>
+              <li style="padding: 8px 0;"><strong>Title:</strong> ${projectTitle}</li>
+              <li style="padding: 8px 0;"><strong>Project ID:</strong> ${generatedProjectId}</li>
             </ul>
             <p style="font-size: 12px; color: #999; margin: 0;">
               Submitted: ${new Date().toLocaleString()}
@@ -280,7 +314,7 @@ app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) =
     }
 
     if (existingProposal.pdfS3Key) {
-      console.log('🗑️ Deleting old S3 object:', existingProposal.pdfS3Key);
+      console.log('Deleting old S3 object:', existingProposal.pdfS3Key);
       await deleteFromS3(existingProposal.pdfS3Key);
     }
 
@@ -291,7 +325,7 @@ app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) =
       projectId: projectId.trim()
     });
 
-    console.log('☁️ Uploading updated PDF to S3...');
+    console.log('Uploading updated PDF to S3...');
     await uploadPdfToS3({
       key: s3Key,
       buffer: req.file.buffer,
@@ -351,13 +385,13 @@ app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) =
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
           <div style="background: #236b60; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-            <h2 style="margin: 0; font-size: 24px;">🔄 Proposal Resubmitted</h2>
+            <h2 style="margin: 0; font-size: 24px;">Proposal Resubmitted</h2>
           </div>
           <div style="padding: 20px; background: #f9fafb; border-radius: 0 0 8px 8px;">
             <ul style="list-style: none; padding: 0;">
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>📋 Project ID:</strong> ${projectId}</li>
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>👤 Name:</strong> ${researcherName}</li>
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>📧 Email:</strong> ${email}</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Project ID:</strong> ${projectId}</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Name:</strong> ${researcherName}</li>
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Email:</strong> ${email}</li>
               <li style="padding: 8px 0;"><strong>📎 PDF:</strong> attached</li>
             </ul>
             <p style="font-size: 12px; color: #999; margin: 0;">
@@ -502,6 +536,27 @@ app.use((error, req, res, next) => {
 
 app.get('/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date().toISOString() });
+});
+
+// Public route
+app.get('/', (req, res) => {
+  res.json({ message: 'Home page (public) - Ethics Committee API' });
+});
+
+// Protected route: only logged-in users can access
+app.get('/user-dashboard', requireAuth, (req, res) => {
+  res.json({
+    message: `Welcome ${req.session.user.fullName || req.session.user.username}`,
+    user: req.session.user
+  });
+});
+
+// Protected route: only logged-in faculty can access
+app.get('/faculty-application', requireAuth, requireFaculty, (req, res) => {
+  res.json({
+    message: `Welcome ${req.session.user.fullName || req.session.user.username} to Faculty Application Portal`,
+    user: req.session.user
+  });
 });
 
 const PORT = process.env.PORT || 5000;

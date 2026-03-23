@@ -258,6 +258,105 @@
   transform: translateY(-2px);
 }
 
+/* Dark mode overrides (uses data-theme="dark" on <html>) */
+:global([data-theme="dark"]) .page {
+  background-color: #0f1413;
+}
+
+:global([data-theme="dark"]) .heading {
+  color: #7fd3c7;
+}
+
+:global([data-theme="dark"]) .subheading {
+  color: #c3c8cf;
+}
+
+:global([data-theme="dark"]) .tabs {
+  border-bottom-color: #2a2f36;
+}
+
+:global([data-theme="dark"]) .tabButton {
+  color: #8b949e;
+}
+
+:global([data-theme="dark"]) .tabButton:hover,
+:global([data-theme="dark"]) .tabActive {
+  color: #7fd3c7;
+  border-bottom-color: #7fd3c7;
+}
+
+:global([data-theme="dark"]) .formCard {
+  background-color: #141a19;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+:global([data-theme="dark"]) .label {
+  color: #e5e7eb;
+}
+
+:global([data-theme="dark"]) .input {
+  background-color: #0f1413;
+  border-color: #2a2f36;
+  color: #e5e7eb;
+}
+
+:global([data-theme="dark"]) .input:focus {
+  border-color: #7fd3c7;
+  box-shadow: 0 0 0 3px rgba(127, 211, 199, 0.15);
+}
+
+:global([data-theme="dark"]) .dropzone {
+  background-color: #111716;
+  border-color: #2a2f36;
+}
+
+:global([data-theme="dark"]) .dropzoneActive {
+  border-color: #7fd3c7;
+  background-color: #10201d;
+}
+
+:global([data-theme="dark"]) .dropTitle {
+  color: #7fd3c7;
+}
+
+:global([data-theme="dark"]) .dropHint {
+  color: #9aa3ad;
+}
+
+:global([data-theme="dark"]) .fileInfo {
+  background-color: #0e2a24;
+  border-color: #1f5b4f;
+  color: #bdebe3;
+}
+
+:global([data-theme="dark"]) .fileRemove {
+  color: #bdebe3;
+}
+
+:global([data-theme="dark"]) .errorBox {
+  background-color: #2a1414;
+  border-color: #6a1a1a;
+  color: #f1b8b8;
+}
+
+:global([data-theme="dark"]) .primaryButton {
+  background-color: #2e8e7f;
+  box-shadow: 0 4px 12px rgba(46, 142, 127, 0.35);
+}
+
+:global([data-theme="dark"]) .primaryButton:hover {
+  background-color: #2a7f72;
+}
+
+:global([data-theme="dark"]) .secondaryButton {
+  background-color: #2a2f36;
+  color: #e5e7eb;
+}
+
+:global([data-theme="dark"]) .secondaryButton:hover {
+  background-color: #343a43;
+}
+
 /* Info box */
 .infoBox {
   padding: 16px 20px;
