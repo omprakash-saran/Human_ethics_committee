@@ -15,13 +15,7 @@ export const ThemeProvider = ({ children }) => {
       return !mode;
     });
   };
-  // useEffect(()=>{
-  //   setDarkMode((mode)=> {
-  //     const a = localStorage.getItem('darkmode') ;
-  //     if(a == null) return false;
-  //     return JSON.parse(a);
-  //   });
-  // },[])
+ 
 
   useEffect(() => {
     document.documentElement.setAttribute(

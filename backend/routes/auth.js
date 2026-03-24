@@ -4,10 +4,6 @@ const { omniportBaseUrl, clientId, clientSecret, redirectUri, frontendUrl } = re
 
 const router = express.Router();
 
-/**
- * GET /auth/omniport/login
- * Redirects user to Omniport OAuth authorisation page
- */
 router.get('/omniport/login', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.oauthState = state;
@@ -22,10 +18,6 @@ router.get('/omniport/login', (req, res) => {
   return res.redirect(authUrl);
 });
 
-/**
- * GET /auth/omniport/callback
- * Omniport redirects here with ?code=...&state=...
- */
 router.get('/omniport/callback', async (req, res) => {
   try {
     const { code, state } = req.query;
@@ -34,10 +26,8 @@ router.get('/omniport/callback', async (req, res) => {
       return res.status(400).send('Invalid OAuth state or missing code.');
     }
 
-    // one-time use state
     delete req.session.oauthState;
 
-    // 1) Exchange authorisation code for token
     const tokenResponse = await fetch(`${omniportBaseUrl}/open_auth/token/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -54,8 +44,6 @@ router.get('/omniport/callback', async (req, res) => {
     if (!tokenResponse.ok || !tokenData.access_token) {
       return res.status(401).send('OAuth token exchange failed.');
     }
-
-    // 2) Fetch user profile using access token
     const profileResponse = await fetch(`${omniportBaseUrl}/open_auth/get_user_data/`, {
       method: 'GET',
       headers: {
@@ -94,10 +82,6 @@ router.get('/omniport/callback', async (req, res) => {
   }
 });
 
-/**
- * POST /auth/logout
- * Destroys local session (optional: token revoke can be added later)
- */
 router.post('/logout', (req, res) => {
   req.session.destroy(() => {
     res.clearCookie('connect.sid');

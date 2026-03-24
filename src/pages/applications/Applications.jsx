@@ -286,7 +286,6 @@ export default function Applications() {
   return (
     <div className={styles.page}>
       <div className={styles.inner}>
-        {/* Header Section */}
         <div className={styles.header}>
           <div className={styles.headerRow}>
             <h1 className={styles.heading}>Research Proposal Submission Portal</h1>
@@ -299,7 +298,6 @@ export default function Applications() {
           </p>
         </div>
 
-        {/* TAB NAVIGATION */}
         <div className={styles.tabs}>
           <button
             type="button"
@@ -338,20 +336,15 @@ export default function Applications() {
             }}
             className={`${styles.tabButton} ${!isNew ? styles.tabActive : ''}`}
           >
-            Revised Submission
+            Re-Submission
           </button>
         </div>
 
-        {/* Form Container */}
         <div className={styles.formCard}>
           <form onSubmit={handleSubmit} className={styles.form}>
-            {/* TAB 1: NEW SUBMISSION */}
             {activeTab === 'new' && (
               <>
-
-                {/* Row 1: Name and Email */}
                 <div className={styles.grid2}>
-                  {/* Researcher Name */}
                   <div>
                     <label className={styles.label}>Primary Researcher Name *</label>
                     <input
@@ -366,7 +359,6 @@ export default function Applications() {
                     />
                   </div>
 
-                  {/* Email */}
                   <div>
                     <label className={styles.label}>Contact Email Address *</label>
                     <input
@@ -382,7 +374,6 @@ export default function Applications() {
                   </div>
                 </div>
 
-                {/* Project Title */}
                 <div>
                   <label className={styles.label}>Research Project Title *</label>
                   <input
@@ -399,11 +390,9 @@ export default function Applications() {
               </>
             )}
 
-            {/* TAB 2: RESUBMISSION */}
             {activeTab === 'resubmit' && (
               <>
 
-                {/* Project ID Field */}
                 <div>
                   <label className={styles.label}>Original Project ID *</label>
                   <input
@@ -418,9 +407,7 @@ export default function Applications() {
                   />
                 </div>
 
-                {/* Row 1: Name and Email */}
                 <div className={styles.grid2}>
-                  {/* Researcher Name */}
                   <div>
                     <label className={styles.label}>Primary Researcher Name *</label>
                     <input
@@ -435,7 +422,6 @@ export default function Applications() {
                     />
                   </div>
 
-                  {/* Email */}
                   <div>
                     <label className={styles.label}>Contact Email Address *</label>
                     <input
@@ -453,11 +439,9 @@ export default function Applications() {
               </>
             )}
 
-            {/* PDF UPLOAD SECTION - Shared by both tabs */}
             <div>
               <label className={styles.label}>Research Proposal Document (PDF) *</label>
 
-              {/* File Input - Hidden but accessible */}
               <input
                 type="file"
                 id="pdf-upload"
@@ -466,7 +450,6 @@ export default function Applications() {
                 className={styles.hiddenFileInput}
               />
 
-              {/* Dropzone */}
               <div
                 className={styles.dropzone}
                 onClick={() => {
@@ -490,7 +473,6 @@ export default function Applications() {
                   if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                     const file = e.dataTransfer.files[0];
 
-                    // Validate file type
                     if (file.type !== 'application/pdf') {
                       setUploadError('⚠ File format invalid. Only PDF files are accepted. Please convert and resubmit your document.');
                       setFormData((prevState) => ({
@@ -500,9 +482,8 @@ export default function Applications() {
                       return;
                     }
 
-                    // Validate file size (max 5MB)
-                    if (file.size > 5 * 1024 * 1024) {
-                      setUploadError('⚠ File size exceeds the 5MB limit. Please reduce the file size by compressing or removing unnecessary content.');
+                    if (file.size > 20 * 1024 * 1024) {
+                      setUploadError('⚠ File size exceeds the 20MB limit. Please reduce the file size by compressing or removing unnecessary content.');
                       setFormData((prevState) => ({
                         ...prevState,
                         pdfFile: null
@@ -545,11 +526,9 @@ export default function Applications() {
                 </div>
               )}
 
-              {/* Error Message */}
               {uploadError && <div className={styles.errorBox}>{uploadError}</div>}
             </div>
 
-            {/* Buttons */}
             <div className={styles.buttonRow}>
               <button type="submit" className={styles.primaryButton}>
                 {activeTab === 'new' ? 'Submit Proposal' : 'Resubmit Proposal'}
@@ -561,7 +540,6 @@ export default function Applications() {
           </form>
         </div>
 
-        {/* Info Box */}
         <div className={`${styles.infoBox} ${isNew ? styles.infoBoxNew : styles.infoBoxResubmit}`}>
           <p className={`${styles.infoText} ${isNew ? styles.infoTextNew : styles.infoTextResubmit}`}>
             {isNew ? (
@@ -577,7 +555,6 @@ export default function Applications() {
         </div>
       </div>
 
-      {/* SUCCESS POPUP MODAL */}
       {showPopup && (
         <div className={styles.popup}>
           <div className={styles.popupIcon}>✓</div>
@@ -590,7 +567,7 @@ export default function Applications() {
               : 'Your research proposal has been successfully submitted to the Human Ethics Committee for review. A confirmation message has been sent to your email address.'}
           </p>
 
-          {/* Display the Project ID */}
+
           <div className={styles.projectIdBox}>
             <span className={styles.projectIdLabel}>{isResubmission ? 'Project ID (Tracking)' : 'Your Project ID'}</span>
             <span className={styles.projectIdValue}>{projectId ? projectId : 'Loading...'}</span>

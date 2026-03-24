@@ -35,40 +35,39 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // set true only when using HTTPS in production
+      secure: false, 
       sameSite: 'lax'
     }
   })
 );
 
-// Make user available in templates (optional but useful)
 app.use((req, res, next) => {
   res.locals.currentUser = req.session?.user || null;
   next();
 });
 
-// Static files
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Auth routes mounted at /auth
+
 app.use('/auth', authRoutes);
 
 console.log('\n Attempting MongoDB connection...');
-console.log('URI:', process.env.MONGODB_URI ? 'Set ✅' : 'NOT SET ❌');
+console.log('URI:', process.env.MONGODB_URI ? 'Set ' : 'NOT SET ');
 
 if (!process.env.MONGODB_URI) {
-  console.error('❌ MONGODB_URI is not set in .env file!');
+  console.error(' MONGODB_URI is not set in .env file!');
   console.error('Please add MONGODB_URI to your .env file');
   process.exit(1);
 }
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log('✅ MongoDB connected successfully');
+    console.log(' MongoDB connected successfully');
     console.log('Database: Connected and ready\n');
   })
   .catch(err => {
-    console.error('❌ MongoDB Connection Error:');
+    console.error(' MongoDB Connection Error:');
     console.error('Error Message:', err.message);
     console.error('Error Code:', err.code);
     console.error('\n🔧 Troubleshooting:');
@@ -137,7 +136,7 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify((error, success) => {
   if (error) console.log('❌ Email setup error:', error);
-  else console.log('✅ Email service ready');
+  else console.log(' Email service ready');
 });
 
 function generateProjectId() {
@@ -164,7 +163,7 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
   try {
     const { researcherName, email, projectTitle } = req.body;
 
-    console.log('\n📨 ========== NEW PROPOSAL SUBMISSION ==========');
+    console.log('\n========== NEW PROPOSAL SUBMISSION ==========');
 
     if (!researcherName || researcherName.trim() === '') {
       return res.status(400).json({ message: 'Researcher name is required', success: false });
@@ -366,15 +365,15 @@ app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) =
     };
 
     transporter.sendMail(mailToResearcher, (error) => {
-      if (error) console.log('❌ Error sending resubmission email to researcher:', error.message);
-      else console.log('📧 Resubmission confirmation email sent to researcher:', email);
+      if (error) console.log(' Error sending resubmission email to researcher:', error.message);
+      else console.log(' Resubmission confirmation email sent to researcher:', email);
     });
 
     let attachmentBuffer;
     try {
       attachmentBuffer = await downloadToBuffer(s3Key);
     } catch (e) {
-      console.log('❌ Could not download from S3 for attachment:', e.message);
+      console.log(' Could not download from S3 for attachment:', e.message);
       attachmentBuffer = null;
     }
 
@@ -415,7 +414,7 @@ app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) =
     });
 
   } catch (error) {
-    console.error('❌ ERROR:', error.message);
+    console.error(' ERROR:', error.message);
     res.status(500).json({
       message: 'Error resubmitting proposal',
       error: error.message,
@@ -538,12 +537,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date().toISOString() });
 });
 
-// Public route
 app.get('/', (req, res) => {
   res.json({ message: 'Home page (public) - Ethics Committee API' });
 });
 
-// Protected route: only logged-in users can access
 app.get('/user-dashboard', requireAuth, (req, res) => {
   res.json({
     message: `Welcome ${req.session.user.fullName || req.session.user.username}`,
@@ -551,7 +548,6 @@ app.get('/user-dashboard', requireAuth, (req, res) => {
   });
 });
 
-// Protected route: only logged-in faculty can access
 app.get('/faculty-application', requireAuth, requireFaculty, (req, res) => {
   res.json({
     message: `Welcome ${req.session.user.fullName || req.session.user.username} to Faculty Application Portal`,
@@ -561,11 +557,8 @@ app.get('/faculty-application', requireAuth, requireFaculty, (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log('\n╔════════════════════════════════════════════════╗');
-  console.log('║   🚀 IIT ROORKEE ETHICS COMMITTEE SERVER 🚀   ║');
-  console.log('╚════════════════════════════════════════════════╝\n');
-  console.log(`🌐 Server running on http://localhost:${PORT}`);
-  console.log(`🗄️  Database: Connected to MongoDB`);
-  console.log(`☁️  File Storage: AWS S3 (private)`);
-  console.log(`📧 Email Service: Configured\n`);
+  console.log(` Server running on http://localhost:${PORT}`);
+  console.log(`  Database: Connected to MongoDB`);
+  console.log(` File Storage: AWS S3 (private)`);
+  console.log(` Email Service: Configured\n`);
 });

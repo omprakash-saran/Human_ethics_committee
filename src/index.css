@@ -13,13 +13,13 @@
   --bg-color-u: #111111;
 
 
-  --font-size-page-title: clamp(2.25rem, 6vw, 3rem);         /* From large phones to desktops */
+  --font-size-page-title: clamp(2.25rem, 6vw, 3rem);         
   --font-size-section-title: clamp(1.75rem, 5vw, 2.25rem);
   --font-size-subsection-title: clamp(1.25rem, 4.5vw, 2rem);
   --font-size-small-section: clamp(1.25rem, 4vw, 1.5rem);
-  --font-size-body: clamp(1rem, 2.5vw, 1.125rem);             /* Keep body text subtle on mobile */
+  --font-size-body: clamp(1rem, 2.5vw, 1.125rem);             
   --font-size-note: clamp(1rem, 2.25vw, 1.1rem);
-  --font-size-ui: clamp(0.90rem, 2vw, 0.9rem);              /* UI elements, buttons, etc. */
+  --font-size-ui: clamp(0.90rem, 2vw, 0.9rem);          
   
 
   --font-weight-bold: 700;

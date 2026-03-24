@@ -7,7 +7,6 @@ const Home = () => {
   return (
     <div className={styles.container}>
         <img src="/iitr-main-building.png" alt="welcome to iit roorkee human ethics pages" draggable="false" style={{width: "100%"}}/>
-        {/* <div className={styles.slogan}><span style={{color: "var(--accent-color)"}}>Welcome to a Space Where </span><span style={{color: "var(--primary-color)"}}>Research Meets Responsibility.</span></div> */}
         <div className={styles.block1}>
             <div className={styles.backimg}></div>
             <div className={styles.head}>Human Research Ethics and Integrity </div>
