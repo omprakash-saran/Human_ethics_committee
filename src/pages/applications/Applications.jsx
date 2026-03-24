@@ -29,22 +29,13 @@ export default function Applications() {
           credentials: 'include'
         });
 
-        if (response.redirected) {
-          window.location.href = response.url;
-          return;
-        }
-
-        if (response.ok) {
-          if (isMounted) {
-            setIsAuthenticated(true);
-          }
-        } else {
-          window.location.href = `${apiBaseUrl}/auth/omniport/login`;
-          return;
+        if (isMounted) {
+          setIsAuthenticated(response.ok);
         }
       } catch (error) {
-        window.location.href = `${apiBaseUrl}/auth/omniport/login`;
-        return;
+        if (isMounted) {
+          setIsAuthenticated(false);
+        }
       } finally {
         if (isMounted) {
           setIsAuthChecked(true);
@@ -58,6 +49,23 @@ export default function Applications() {
       isMounted = false;
     };
   }, [apiBaseUrl]);
+
+  const handleLogin = () => {
+    window.location.href = `${apiBaseUrl}/auth/omniport/login`;
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${apiBaseUrl}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setIsAuthenticated(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -247,7 +255,7 @@ export default function Applications() {
         <div className={styles.inner}>
           <div className={styles.header}>
             <h1 className={styles.heading}>Checking login...</h1>
-            <p className={styles.subheading}>Redirecting to Omniport if needed.</p>
+            <p className={styles.subheading}>Verifying your session.</p>
           </div>
         </div>
       </div>
@@ -255,7 +263,24 @@ export default function Applications() {
   }
 
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div className={styles.page}>
+        <div className={styles.inner}>
+          <div className={styles.header}>
+            <h1 className={styles.heading}>Research Proposal Submission</h1>
+            <p className={styles.subheading}>
+              To submit a research proposal for ethical clearance, you must be logged in as a faculty member of IIT Roorkee.
+            </p>
+          </div>
+          <div className={styles.loginCard}>
+            <p className={styles.loginText}>Please log in using your Omniport credentials to continue.</p>
+            <button type="button" onClick={handleLogin} className={styles.loginButton}>
+              Log in with Omniport
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -263,7 +288,12 @@ export default function Applications() {
       <div className={styles.inner}>
         {/* Header Section */}
         <div className={styles.header}>
-          <h1 className={styles.heading}>Research Proposal Submission Portal</h1>
+          <div className={styles.headerRow}>
+            <h1 className={styles.heading}>Research Proposal Submission Portal</h1>
+            <button type="button" onClick={handleLogout} className={styles.logoutButton}>
+              Log out
+            </button>
+          </div>
           <p className={styles.subheading}>
             Submit your research proposal for ethical review to the Human Ethics Committee at IIT Roorkee. Our comprehensive review process ensures adherence to international research standards.
           </p>

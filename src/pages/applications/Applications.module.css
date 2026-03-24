@@ -21,6 +21,13 @@
   margin-bottom: 40px;
 }
 
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .heading {
   font-size: 42px;
   font-weight: 700;
@@ -34,6 +41,59 @@
   color: #666;
   line-height: 1.6;
   margin: 0;
+}
+
+.loginCard {
+  max-width: 520px;
+  margin: 40px auto 0;
+  text-align: center;
+  padding: 32px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.loginText {
+  font-size: 16px;
+  color: #374151;
+  margin: 0 0 24px;
+  line-height: 1.6;
+}
+
+.loginButton {
+  background-color: #236b60;
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(35, 107, 96, 0.3);
+}
+
+.loginButton:hover {
+  background-color: #1a5349;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(35, 107, 96, 0.4);
+}
+
+.logoutButton {
+  background-color: transparent;
+  border: 1px solid #236b60;
+  color: #236b60;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.logoutButton:hover {
+  background-color: #236b60;
+  color: #ffffff;
 }
 
 /* Tabs */
@@ -271,6 +331,34 @@
   color: #c3c8cf;
 }
 
+:global([data-theme="dark"]) .loginCard {
+  background-color: #141a19;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+:global([data-theme="dark"]) .loginText {
+  color: #c3c8cf;
+}
+
+:global([data-theme="dark"]) .loginButton {
+  background-color: #2e8e7f;
+  box-shadow: 0 4px 12px rgba(46, 142, 127, 0.35);
+}
+
+:global([data-theme="dark"]) .loginButton:hover {
+  background-color: #2a7f72;
+}
+
+:global([data-theme="dark"]) .logoutButton {
+  border-color: #7fd3c7;
+  color: #7fd3c7;
+}
+
+:global([data-theme="dark"]) .logoutButton:hover {
+  background-color: #2e8e7f;
+  color: #0f1413;
+}
+
 :global([data-theme="dark"]) .tabs {
   border-bottom-color: #2a2f36;
 }
@@ -506,6 +594,10 @@
   }
 
   .tabs {
+    flex-direction: column;
+  }
+
+  .headerRow {
     flex-direction: column;
   }
 }

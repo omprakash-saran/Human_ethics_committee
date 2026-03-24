@@ -68,7 +68,6 @@ router.get('/omniport/callback', async (req, res) => {
       return res.status(401).send('Unable to fetch user data from Omniport.');
     }
 
-    // 3) Role extraction + faculty-only authorization
     const roles = (profile?.person?.roles || [])
       .filter((r) => String(r?.activeStatus || '').includes('IS_ACTIVE'))
       .map((r) => String(r?.role || '').toLowerCase());
@@ -80,7 +79,7 @@ router.get('/omniport/callback', async (req, res) => {
       return res.status(403).send('Access denied: only faculty members can log in.');
     }
 
-    // 4) Save logged-in user session
+
     req.session.user = {
       userId: profile?.userId,
       username: profile?.username,
@@ -101,7 +100,8 @@ router.get('/omniport/callback', async (req, res) => {
  */
 router.post('/logout', (req, res) => {
   req.session.destroy(() => {
-    res.redirect('/');
+    res.clearCookie('connect.sid');
+    res.status(200).json({ success: true });
   });
 });
 
