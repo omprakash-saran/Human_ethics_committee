@@ -25,7 +25,16 @@ function requireFaculty(req, res, next) {
   return next();
 }
 
+function requireAdmin(req, res, next) {
+  if (!req.session || !req.session.user || !req.session.user.isAdmin) {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+
+  return next();
+}
+
 module.exports = {
   requireAuth,
-  requireFaculty
+  requireFaculty,
+  requireAdmin
 };

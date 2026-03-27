@@ -288,6 +288,7 @@ export default function Applications() {
       <div className={styles.inner}>
         <div className={styles.header}>
           <div className={styles.headerRow}>
+            <span className={styles.headerSpacer} aria-hidden="true"></span>
             <h1 className={styles.heading}>Research Proposal Submission Portal</h1>
             <button type="button" onClick={handleLogout} className={styles.logoutButton}>
               Log out
@@ -316,7 +317,7 @@ export default function Applications() {
             }}
             className={`${styles.tabButton} ${isNew ? styles.tabActive : ''}`}
           >
-            Initial Submission
+            Submission
           </button>
 
           <button
@@ -346,7 +347,7 @@ export default function Applications() {
               <>
                 <div className={styles.grid2}>
                   <div>
-                    <label className={styles.label}>Primary Researcher Name *</label>
+                    <label className={styles.label}>Researcher Name *</label>
                     <input
                       type="text"
                       name="researcherName"
@@ -360,7 +361,7 @@ export default function Applications() {
                   </div>
 
                   <div>
-                    <label className={styles.label}>Contact Email Address *</label>
+                    <label className={styles.label}>Email Address *</label>
                     <input
                       type="email"
                       name="email"
@@ -409,7 +410,7 @@ export default function Applications() {
 
                 <div className={styles.grid2}>
                   <div>
-                    <label className={styles.label}>Primary Researcher Name *</label>
+                    <label className={styles.label}>Researcher Name *</label>
                     <input
                       type="text"
                       name="researcherName"
@@ -423,7 +424,7 @@ export default function Applications() {
                   </div>
 
                   <div>
-                    <label className={styles.label}>Contact Email Address *</label>
+                    <label className={styles.label}>Email Address *</label>
                     <input
                       type="email"
                       name="email"

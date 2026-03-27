@@ -11,7 +11,7 @@ const slugify = require('slugify');
 const { uploadPdfToS3, deleteFromS3, getSignedDownloadUrl, downloadToBuffer } = require('./s3');
 const config = require('./config/oauth');
 const authRoutes = require('./routes/auth');
-const { requireAuth, requireFaculty } = require('./config/middleware/auth');
+const { requireAuth, requireFaculty, requireAdmin } = require('./config/middleware/auth');
 
 dotenv.config({
   path: path.resolve(__dirname, '.env'),
@@ -51,6 +51,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use('/auth', authRoutes);
+
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body || {};
+  const adminUser = process.env.ADMIN_USERNAME;
+  const adminPass = process.env.ADMIN_PASSWORD;
+
+  if (!adminUser || !adminPass) {
+    return res.status(500).json({ success: false, message: 'Admin credentials are not configured' });
+  }
+
+  if (username === adminUser && password === adminPass) {
+    req.session.user = {
+      username: adminUser,
+      fullName: 'Admin User',
+      isAdmin: true
+    };
+    return res.json({ success: true });
+  }
+
+  return res.status(401).json({ success: false, message: 'Invalid credentials' });
+});
 
 console.log('\n Attempting MongoDB connection...');
 console.log('URI:', process.env.MONGODB_URI ? 'Set ' : 'NOT SET ');
@@ -561,4 +582,26 @@ app.listen(PORT, () => {
   console.log(`  Database: Connected to MongoDB`);
   console.log(` File Storage: AWS S3 (private)`);
   console.log(` Email Service: Configured\n`);
+});
+
+app.get('/api/admin/proposals', requireAdmin, async (req, res) => {
+  try {
+    const proposals = await Proposal.find().sort({ submittedAt: -1 });
+    res.json({ success: true, data: proposals });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching proposals', error: error.message });
+  }
+});
+
+app.get('/api/admin/proposals/:id/download', requireAdmin, async (req, res) => {
+  try {
+    const proposal = await Proposal.findById(req.params.id);
+    if (!proposal || !proposal.pdfS3Key) {
+      return res.status(404).json({ message: 'PDF not found' });
+    }
+    const signedUrl = await getSignedDownloadUrl(proposal.pdfS3Key, 600);
+    return res.json({ success: true, url: signedUrl });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error generating download link', error: error.message });
+  }
 });

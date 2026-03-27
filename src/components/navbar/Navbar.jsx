@@ -114,6 +114,7 @@ const Navbar = () => {
                         <li onMouseEnter={() => setFlag(4)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/applications'>Applications</NavLink></li>
                         <li onMouseEnter={() => setFlag(5)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/downloads'>Downloads</NavLink></li>
                         <li onMouseEnter={() => setFlag(6)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/resources'>Resources</NavLink></li>
+                        <li onMouseEnter={() => setFlag(null)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/admin/login'>Admin</NavLink></li>
                     </ul>
 
                     {flag === 1 && (
@@ -374,6 +375,10 @@ const Navbar = () => {
                                     <div className={styles.list}></div>
                                 </div>
                             </div>
+                        </details>
+
+                        <details className={styles.dropdown}>
+                            <summary><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/admin/login'>Admin</NavLink></summary>
                         </details>
                     </ul>
                 </nav>

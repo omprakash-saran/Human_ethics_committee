@@ -8,6 +8,8 @@ import HumanEthics from './pages/humanEthics/HumanEthics';
 import Applications from './pages/applications/Applications';
 import Downloads from './pages/downloads/Downloads';
 import Resources from './pages/resources/Resources';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
   const App = () => {
 
@@ -22,6 +24,8 @@ import Resources from './pages/resources/Resources';
           <Route path="/applications" element={<Applications/>} />
           <Route path="/downloads" element={<Downloads/>} />
           <Route path="/resources" element={<Resources/>} />
+          <Route path="/admin/login" element={<AdminLogin/>} />
+          <Route path="/admin/dashboard" element={<AdminDashboard/>} />
         </Route>
       )
       );
