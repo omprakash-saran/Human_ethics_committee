@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const session = require('express-session');
 const path = require('path');
+const fs = require('fs');
+const PDFDocument = require('pdfkit');
 
 const slugify = require('slugify');
 const { uploadPdfToS3, deleteFromS3, getSignedDownloadUrl, downloadToBuffer } = require('./s3');
@@ -148,16 +150,38 @@ const upload = multer({
 });
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
   }
 });
 
+const emailLogDir = path.join(__dirname, 'logs');
+const emailLogFile = path.join(emailLogDir, 'email.log');
+
+function logEmailEvent(message) {
+  const timestamp = new Date().toISOString();
+  const line = `[${timestamp}] ${message}\n`;
+
+  try {
+    fs.mkdirSync(emailLogDir, { recursive: true });
+    fs.appendFileSync(emailLogFile, line, 'utf8');
+  } catch (logError) {
+    console.log('Failed to write email log:', logError.message);
+  }
+
+  console.log(message);
+}
+
 transporter.verify((error, success) => {
-  if (error) console.log('❌ Email setup error:', error);
-  else console.log(' Email service ready');
+  if (error) {
+    logEmailEvent(`Email setup error: ${error.message}`);
+  } else {
+    logEmailEvent('Email service ready');
+  }
 });
 
 function generateProjectId() {
@@ -166,18 +190,44 @@ function generateProjectId() {
   return `IHEC-${currentYear}-${randomNum}`;
 }
 
-function buildS3Key({ projectTitle, projectId }) {
-  const safeTitle = slugify(projectTitle, {
-    lower: true,
-    strict: true,
-    trim: true
-  }) || 'proposal';
-
+function buildS3Key({ projectId, originalFileName }) {
   const year = new Date().getFullYear();
-  const fileName = `${safeTitle}-${projectId}.pdf`;
+  const fileName = path.basename(originalFileName || 'proposal.pdf');
   const key = `proposals/${year}/${projectId}/${fileName}`;
 
   return { key, fileName };
+}
+
+function buildAcknowledgementPdfBuffer(proposal) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const chunks = [];
+
+    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', (err) => reject(err));
+
+    doc.fontSize(18).text('Institutional Human Ethics Committee', { align: 'center' });
+    doc.moveDown(0.4);
+    doc.fontSize(13).text('Proposal Submission Acknowledgement', { align: 'center' });
+    doc.moveDown(1.2);
+
+    doc.fontSize(11).text(`Date: ${new Date(proposal.submittedAt || Date.now()).toLocaleDateString()}`);
+    doc.moveDown(0.6);
+
+    doc.fontSize(12).text(`Project ID: ${proposal.projectId}`);
+    doc.text(`Researcher Name: ${proposal.researcherName}`);
+    doc.text(`Email: ${proposal.email}`);
+    doc.text(`Project Title: ${proposal.projectTitle}`);
+    doc.text(`File Name: ${proposal.pdfFileName || 'N/A'}`);
+
+    doc.moveDown(1.2);
+    doc.fontSize(11).text('Your proposal has been received and is under review. Please retain this acknowledgement for future reference.');
+    doc.moveDown(2);
+    doc.fontSize(10).text('IIT Roorkee - Institutional Human Ethics Committee', { align: 'center' });
+
+    doc.end();
+  });
 }
 
 app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
@@ -202,9 +252,9 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
     const generatedProjectId = generateProjectId();
     console.log(`Generated Project ID: ${generatedProjectId}`);
 
-    const { key: s3Key, fileName: renamedFileName } = buildS3Key({
-      projectTitle: projectTitle.trim(),
-      projectId: generatedProjectId
+    const { key: s3Key } = buildS3Key({
+      projectId: generatedProjectId,
+      originalFileName: req.file.originalname
     });
 
     console.log('Uploading PDF to S3...');
@@ -219,23 +269,29 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
       researcherName: researcherName.trim(),
       email: email.trim(),
       projectTitle: projectTitle.trim(),
-      pdfFileName: renamedFileName,
+      pdfFileName: req.file.originalname,
       pdfS3Key: s3Key
     });
 
     await proposal.save();
 
     const signedUrl = await getSignedDownloadUrl(s3Key, 60 * 10); 
+    const acknowledgementUrl = `${req.protocol}://${req.get('host')}/api/proposals/${proposal._id}/acknowledgement?email=${encodeURIComponent(email.trim())}`;
     res.status(201).json({
       message: 'Proposal submitted successfully!',
       projectId: generatedProjectId,
       proposalId: proposal._id,
+      researcherName: proposal.researcherName,
+      email: proposal.email,
+      projectTitle: proposal.projectTitle,
+      pdfFileName: proposal.pdfFileName,
       pdfSignedUrl: signedUrl,
+      acknowledgementUrl,
       success: true
     });
 
     const mailToResearcher = {
-      from: process.env.GMAIL_USER,
+      from: process.env.EMAIL_USER,
       to: email.trim(),
       subject: 'Proposal Submission Confirmation - IIT Roorkee Ethics Committee',
       html: `
@@ -250,54 +306,14 @@ app.post('/api/proposals', upload.single('pdfFile'), async (req, res) => {
     };
 
     transporter.sendMail(mailToResearcher, (error) => {
-      if (error) console.log('❌ Error sending email to researcher:', error.message);
-      else console.log('Email sent to researcher:', email);
+      if (error) {
+        logEmailEvent(`Error sending submission email to researcher (${email}): ${error.message}`);
+      } else {
+        logEmailEvent(`Submission email sent to researcher: ${email}`);
+      }
     });
 
-    let attachmentBuffer;
-    try {
-      attachmentBuffer = await downloadToBuffer(s3Key);
-    } catch (e) {
-      console.log('Could not download from S3 for attachment:', e.message);
-      attachmentBuffer = null;
-    }
-
-    const mailToCommittee = {
-      from: process.env.GMAIL_USER,
-      to: process.env.COMMITTEE_GMAIL,
-      subject: `[NEW PROPOSAL] ${projectTitle} - ${researcherName}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
-          <div style="background: #236b60; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-            <h2 style="margin: 0; font-size: 24px;">New Research Proposal Received</h2>
-          </div>
-          <div style="padding: 20px; background: #f9fafb; border-radius: 0 0 8px 8px;">
-            <h3 style="color: #236b60; margin-top: 0;">Researcher Information:</h3>
-            <ul style="list-style: none; padding: 0;">
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Name:</strong> ${researcherName}</li>
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Email:</strong> ${email}</li>
-              <li style="padding: 8px 0;"><strong>Title:</strong> ${projectTitle}</li>
-              <li style="padding: 8px 0;"><strong>Project ID:</strong> ${generatedProjectId}</li>
-            </ul>
-            <p style="font-size: 12px; color: #999; margin: 0;">
-              Submitted: ${new Date().toLocaleString()}
-            </p>
-          </div>
-        </div>
-      `,
-      attachments: attachmentBuffer
-        ? [{
-            filename: renamedFileName,
-            content: attachmentBuffer,
-            contentType: 'application/pdf'
-          }]
-        : []
-    };
-
-    transporter.sendMail(mailToCommittee, (error) => {
-      if (error) console.log('❌ Error sending email to committee:', error.message);
-      else console.log('📧 Email sent to committee (with attachment if available)');
-    });
+    logEmailEvent('Committee notification email skipped for submissions.');
 
   } catch (error) {
     console.error('❌ ERROR:', error.message);
@@ -340,9 +356,9 @@ app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) =
 
     const effectiveTitle = (existingProposal.projectTitle || 'proposal').trim();
 
-    const { key: s3Key, fileName: renamedFileName } = buildS3Key({
-      projectTitle: effectiveTitle,
-      projectId: projectId.trim()
+    const { key: s3Key } = buildS3Key({
+      projectId: projectId.trim(),
+      originalFileName: req.file.originalname
     });
 
     console.log('Uploading updated PDF to S3...');
@@ -354,7 +370,7 @@ app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) =
 
     existingProposal.researcherName = researcherName.trim();
     existingProposal.email = email.trim();
-    existingProposal.pdfFileName = renamedFileName;
+    existingProposal.pdfFileName = req.file.originalname;
     existingProposal.pdfS3Key = s3Key;
     existingProposal.submittedAt = new Date();
     existingProposal.status = 'Pending';
@@ -362,16 +378,22 @@ app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) =
     await existingProposal.save();
 
     const signedUrl = await getSignedDownloadUrl(s3Key, 60 * 10);
+    const acknowledgementUrl = `${req.protocol}://${req.get('host')}/api/proposals/${existingProposal._id}/acknowledgement?email=${encodeURIComponent(email.trim())}`;
     res.status(200).json({
       message: 'Proposal resubmitted successfully!',
       projectId: projectId,
       proposalId: existingProposal._id,
+      researcherName: existingProposal.researcherName,
+      email: existingProposal.email,
+      projectTitle: existingProposal.projectTitle,
+      pdfFileName: existingProposal.pdfFileName,
       pdfSignedUrl: signedUrl,
+      acknowledgementUrl,
       success: true
     });
 
     const mailToResearcher = {
-      from: process.env.GMAIL_USER,
+      from: process.env.EMAIL_USER,
       to: email.trim(),
       subject: 'Proposal Resubmission Confirmation - IIT Roorkee Ethics Committee',
       html: `
@@ -386,53 +408,14 @@ app.post('/api/proposals/resubmit', upload.single('pdfFile'), async (req, res) =
     };
 
     transporter.sendMail(mailToResearcher, (error) => {
-      if (error) console.log(' Error sending resubmission email to researcher:', error.message);
-      else console.log(' Resubmission confirmation email sent to researcher:', email);
+      if (error) {
+        logEmailEvent(`Error sending resubmission email to researcher (${email}): ${error.message}`);
+      } else {
+        logEmailEvent(`Resubmission email sent to researcher: ${email}`);
+      }
     });
 
-    let attachmentBuffer;
-    try {
-      attachmentBuffer = await downloadToBuffer(s3Key);
-    } catch (e) {
-      console.log(' Could not download from S3 for attachment:', e.message);
-      attachmentBuffer = null;
-    }
-
-    const mailToCommittee = {
-      from: process.env.GMAIL_USER,
-      to: 'ops052005@gmail.com',
-      subject: `[RESUBMITTED PROPOSAL] ${projectId} - ${researcherName}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
-          <div style="background: #236b60; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-            <h2 style="margin: 0; font-size: 24px;">Proposal Resubmitted</h2>
-          </div>
-          <div style="padding: 20px; background: #f9fafb; border-radius: 0 0 8px 8px;">
-            <ul style="list-style: none; padding: 0;">
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Project ID:</strong> ${projectId}</li>
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Name:</strong> ${researcherName}</li>
-              <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Email:</strong> ${email}</li>
-              <li style="padding: 8px 0;"><strong>📎 PDF:</strong> attached</li>
-            </ul>
-            <p style="font-size: 12px; color: #999; margin: 0;">
-              Resubmitted: ${new Date().toLocaleString()}
-            </p>
-          </div>
-        </div>
-      `,
-      attachments: attachmentBuffer
-        ? [{
-            filename: renamedFileName,
-            content: attachmentBuffer,
-            contentType: 'application/pdf'
-          }]
-        : []
-    };
-
-    transporter.sendMail(mailToCommittee, (error) => {
-      if (error) console.log('❌ Error sending resubmission email to committee:', error.message);
-      else console.log('📧 Resubmission email sent to committee (with attachment if available)');
-    });
+    logEmailEvent('Committee notification email skipped for resubmissions.');
 
   } catch (error) {
     console.error(' ERROR:', error.message);
@@ -495,7 +478,7 @@ app.put('/api/proposals/:id/status', async (req, res) => {
     };
 
     const mailOptions = {
-      from: process.env.GMAIL_USER,
+      from: process.env.EMAIL_USER,
       to: proposal.email,
       subject: `Proposal Status Update: ${statusMessage[status]} - ${proposal.projectTitle}`,
       html: `
@@ -603,5 +586,26 @@ app.get('/api/admin/proposals/:id/download', requireAdmin, async (req, res) => {
     return res.json({ success: true, url: signedUrl });
   } catch (error) {
     return res.status(500).json({ message: 'Error generating download link', error: error.message });
+  }
+});
+
+app.get('/api/proposals/:id/acknowledgement', async (req, res) => {
+  try {
+    const proposal = await Proposal.findById(req.params.id);
+    if (!proposal) {
+      return res.status(404).json({ message: 'Proposal not found', success: false });
+    }
+
+    const emailQuery = String(req.query.email || '').trim().toLowerCase();
+    if (emailQuery && emailQuery !== String(proposal.email || '').trim().toLowerCase()) {
+      return res.status(403).json({ message: 'Email does not match proposal record', success: false });
+    }
+
+    const pdfBuffer = await buildAcknowledgementPdfBuffer(proposal);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="IHEC-Acknowledgement-${proposal.projectId}.pdf"`);
+    return res.send(pdfBuffer);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error generating acknowledgement', error: error.message, success: false });
   }
 });

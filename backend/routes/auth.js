@@ -60,7 +60,7 @@ router.get('/omniport/callback', async (req, res) => {
       .filter((r) => String(r?.activeStatus || '').includes('IS_ACTIVE'))
       .map((r) => String(r?.role || '').toLowerCase());
 
-    const allowedFacultyRoles = ['faculty', 'faculty member', 'professor', 'student']; // adjust exact labels if needed
+    const allowedFacultyRoles = ['faculty', 'faculty member', 'professor']; // adjust exact labels if needed
     const isFaculty = roles.some((role) => allowedFacultyRoles.includes(role));
 
     if (!isFaculty) {

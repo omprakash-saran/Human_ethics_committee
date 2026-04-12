@@ -109,6 +109,7 @@ export default function AdminDashboard() {
                 <th>Researcher</th>
                 <th>Email</th>
                 <th>Project Title</th>
+                <th>File Name</th>
                 <th>Submitted</th>
                 <th>Status</th>
                 <th>PDF</th>
@@ -117,7 +118,7 @@ export default function AdminDashboard() {
             <tbody>
               {proposals.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className={styles.empty}>No proposals found.</td>
+                  <td colSpan="8" className={styles.empty}>No proposals found.</td>
                 </tr>
               ) : (
                 proposals.map((proposal) => (
@@ -126,6 +127,7 @@ export default function AdminDashboard() {
                     <td>{proposal.researcherName}</td>
                     <td>{proposal.email}</td>
                     <td>{proposal.projectTitle}</td>
+                    <td>{proposal.pdfFileName || '-'}</td>
                     <td>{proposal.submittedAt ? new Date(proposal.submittedAt).toLocaleString() : '-'}</td>
                     <td>{proposal.status || 'Pending'}</td>
                     <td>

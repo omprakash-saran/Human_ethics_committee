@@ -19,6 +19,7 @@ export default function Applications() {
   const [uploadError, setUploadError] = useState('');
   const [projectId, setProjectId] = useState('');
   const [isResubmission, setIsResubmission] = useState(false); 
+  const [submissionSummary, setSubmissionSummary] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -172,6 +173,15 @@ export default function Applications() {
           console.log('✓ Research proposal submitted successfully!', data);
           setProjectId(data.projectId);
           setIsResubmission(false);
+          setSubmissionSummary({
+            projectId: data.projectId,
+            researcherName: data.researcherName,
+            email: data.email,
+            projectTitle: data.projectTitle,
+            pdfFileName: data.pdfFileName,
+            pdfSignedUrl: data.pdfSignedUrl,
+            acknowledgementUrl: data.acknowledgementUrl
+          });
           setShowPopup(true);
 
           setTimeout(() => {
@@ -211,6 +221,15 @@ export default function Applications() {
           console.log('✓ Research proposal resubmitted successfully!', data);
           setProjectId(data.projectId);
           setIsResubmission(true);
+          setSubmissionSummary({
+            projectId: data.projectId,
+            researcherName: data.researcherName,
+            email: data.email,
+            projectTitle: data.projectTitle,
+            pdfFileName: data.pdfFileName,
+            pdfSignedUrl: data.pdfSignedUrl,
+            acknowledgementUrl: data.acknowledgementUrl
+          });
           setShowPopup(true);
 
           setTimeout(() => {
@@ -571,11 +590,53 @@ export default function Applications() {
 
           <div className={styles.projectIdBox}>
             <span className={styles.projectIdLabel}>{isResubmission ? 'Project ID (Tracking)' : 'Your Project ID'}</span>
-            <span className={styles.projectIdValue}>{projectId ? projectId : 'Loading...'}</span>
+            <span className={styles.projectIdValue}>{submissionSummary?.projectId || projectId || 'Loading...'}</span>
+          </div>
+
+          <div className={styles.summaryBox}>
+            <div className={styles.summaryRow}>
+              <span className={styles.summaryLabel}>Researcher</span>
+              <span className={styles.summaryValue}>{submissionSummary?.researcherName || '—'}</span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span className={styles.summaryLabel}>Email</span>
+              <span className={styles.summaryValue}>{submissionSummary?.email || '—'}</span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span className={styles.summaryLabel}>Project Title</span>
+              <span className={styles.summaryValue}>{submissionSummary?.projectTitle || '—'}</span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span className={styles.summaryLabel}>File Name</span>
+              <span className={styles.summaryValue}>{submissionSummary?.pdfFileName || formData.pdfFile?.name || '—'}</span>
+            </div>
+          </div>
+
+          <div className={styles.summaryLinks}>
+            {submissionSummary?.acknowledgementUrl && (
+              <a
+                className={styles.summaryLink}
+                href={submissionSummary.acknowledgementUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Download acknowledgement (PDF)
+              </a>
+            )}
+            {submissionSummary?.pdfSignedUrl && (
+              <a
+                className={styles.summaryLink}
+                href={submissionSummary.pdfSignedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Review submitted proposal (PDF)
+              </a>
+            )}
           </div>
 
           <button onClick={() => setShowPopup(false)} className={styles.popupButton}>
-            {isResubmission ? 'Complete' : 'I Understand'}
+            {isResubmission ? 'Complete' : 'Confirm'}
           </button>
         </div>
       )}
