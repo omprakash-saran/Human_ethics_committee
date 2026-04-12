@@ -12,11 +12,7 @@ function requireFaculty(req, res, next) {
   }
 
   const roles = req.session.user.roles || [];
-  const allowedFacultyRoles = ['faculty', 'faculty member', 'professor']; // adjust after checking actual Omniport role names
-
-  const isFaculty = roles.some((role) =>
-    allowedFacultyRoles.includes(String(role).toLowerCase())
-  );
+  const isFaculty = roles.some((role) => String(role).toLowerCase().includes('faculty'));
 
   if (!isFaculty) {
     return res.status(403).send('Access denied: only faculty members can access this portal.');

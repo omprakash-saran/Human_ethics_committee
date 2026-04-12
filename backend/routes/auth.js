@@ -60,8 +60,7 @@ router.get('/omniport/callback', async (req, res) => {
       .filter((r) => String(r?.activeStatus || '').includes('IS_ACTIVE'))
       .map((r) => String(r?.role || '').toLowerCase());
 
-    const allowedFacultyRoles = ['faculty', 'faculty member', 'professor']; // adjust exact labels if needed
-    const isFaculty = roles.some((role) => allowedFacultyRoles.includes(role));
+    const isFaculty = roles.some((role) => String(role).toLowerCase().includes('faculty'));
 
     if (!isFaculty) {
       return res.status(403).send('Access denied: only faculty members can log in.');
