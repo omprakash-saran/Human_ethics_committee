@@ -22,12 +22,26 @@ dotenv.config({
 
 const app = express();
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://human-ethics-committee.vercel.app',
+  process.env.FRONTEND_URL
+].filter(url => url && url.trim()); // Remove empty/undefined values
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'production';
+}
 
 // Session setup for OAuth authentication
 app.use(
@@ -37,7 +51,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, 
+      secure: process.env.NODE_ENV === 'production', // ✓ true in production
       sameSite: 'lax'
     }
   })
@@ -561,7 +575,7 @@ app.get('/faculty-application', requireAuth, requireFaculty, (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(` Server running on http://localhost:${PORT}`);
+  console.log(` Server running on port:${PORT}`);
   console.log(`  Database: Connected to MongoDB`);
   console.log(` File Storage: AWS S3 (private)`);
   console.log(` Email Service: Configured\n`);
