@@ -51,8 +51,9 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // ✓ true in production
-      sameSite: 'lax'
+      secure: true,
+      sameSite: 'none',
+      maxAge: 24 * 60 * 60 * 1000
     }
   })
 );
@@ -67,6 +68,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use('/auth', authRoutes);
+
+app.post('/auth/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: 'Logout failed' });
+    }
+    return res.json({ success: true });
+  });
+});
 
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body || {};
