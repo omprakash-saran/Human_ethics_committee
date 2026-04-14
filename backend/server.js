@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const path = require('path');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
@@ -51,6 +52,11 @@ app.use(
     secret: config.sessionSecret,
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      collectionName: 'sessions',
+      ttl: 24 * 60 * 60
+    }),
     cookie: {
       httpOnly: true,
       secure: true,
@@ -76,6 +82,7 @@ app.post('/auth/logout', (req, res) => {
     if (err) {
       return res.status(500).json({ success: false, message: 'Logout failed' });
     }
+    res.clearCookie('connect.sid');
     return res.json({ success: true });
   });
 });
