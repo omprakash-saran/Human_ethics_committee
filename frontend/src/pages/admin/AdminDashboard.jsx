@@ -19,7 +19,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       });
 
-      if (res.status === 403) {
+      if (res.status === 403 || res.status === 401) {
         navigate('/admin/login');
         return;
       }
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
         credentials: 'include'
       });
 
-      if (res.status === 403) {
+      if (res.status === 403 || res.status === 401) {
         navigate('/admin/login');
         return;
       }
@@ -68,13 +68,17 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
+      // ✅ FIXED: Added /api prefix
       await fetch(`${apiBaseUrl}/auth/logout`, {
         method: 'POST',
         credentials: 'include'
       });
     } catch (err) {
-      // ignore
+      console.error('Logout error:', err);
     } finally {
+      // Clear any local storage/session storage if used
+      localStorage.removeItem('adminAuth'); // If you're using localStorage
+      sessionStorage.removeItem('adminAuth'); // If you're using sessionStorage
       navigate('/admin/login');
     }
   };
