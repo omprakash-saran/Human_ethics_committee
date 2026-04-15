@@ -8,14 +8,21 @@ router.get('/omniport/login', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.oauthState = state;
 
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    state
-  });
+  req.session.save((err) => {
+    if (err) {
+      console.error('Session save error:', err);
+      return res.status(500).send('Session error');
+    }
 
-  const authUrl = `${omniportBaseUrl}/oauth/authorise/?${params.toString()}`;
-  return res.redirect(authUrl);
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      state
+    });
+
+    const authUrl = `${omniportBaseUrl}/oauth/authorise/?${params.toString()}`;
+    return res.redirect(authUrl);
+  });
 });
 
 router.get('/omniport/callback', async (req, res) => {

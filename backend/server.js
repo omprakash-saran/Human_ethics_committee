@@ -16,9 +16,11 @@ const config = require('./config/oauth');
 const authRoutes = require('./routes/auth');
 const { requireAuth, requireFaculty, requireAdmin } = require('./config/middleware/auth');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 dotenv.config({
   path: path.resolve(__dirname, '.env'),
-  override: true
+  override: !isProduction
 });
 
 const app = express();
