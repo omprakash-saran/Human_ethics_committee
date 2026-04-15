@@ -8,13 +8,16 @@ export default function AdminLogin() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
+      // Try both possible endpoints (check which one your backend uses)
       const res = await fetch(`${apiBaseUrl}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -22,15 +25,32 @@ export default function AdminLogin() {
         credentials: 'include'
       });
 
+      // Log the response for debugging
+      console.log('Login response status:', res.status);
+      
       const data = await res.json();
-      if (data.success) {
+      console.log('Login response data:', data);
+
+      if (res.ok && data.success) {
+        // Store something to indicate login (optional, depends on your backend)
+        localStorage.setItem('isAdminLoggedIn', 'true');
         navigate('/admin/dashboard');
         return;
       }
 
-      setError(data.message || 'Login failed');
+      // Handle different error scenarios
+      if (res.status === 401) {
+        setError('Invalid username or password');
+      } else if (res.status === 403) {
+        setError('Access denied. Contact administrator.');
+      } else {
+        setError(data.message || 'Login failed. Please try again.');
+      }
     } catch (err) {
-      setError('Login error');
+      console.error('Login error:', err);
+      setError('Unable to connect to server. Please check your connection.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -47,6 +67,8 @@ export default function AdminLogin() {
               onChange={(e) => setUsername(e.target.value)}
               required
               className={styles.input}
+              placeholder="Enter username"
+              autoComplete="username"
             />
           </label>
           <label className={styles.label}>
@@ -57,10 +79,18 @@ export default function AdminLogin() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className={styles.input}
+              placeholder="Enter password"
+              autoComplete="current-password"
             />
           </label>
           {error && <p className={styles.error}>{error}</p>}
-          <button type="submit" className={styles.button}>Login</button>
+          <button 
+            type="submit" 
+            className={styles.button}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Logging in...' : 'Login'}
+          </button>
         </form>
       </div>
     </div>
