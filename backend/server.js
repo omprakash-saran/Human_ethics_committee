@@ -14,7 +14,7 @@ const slugify = require('slugify');
 const { uploadPdfToS3, deleteFromS3, getSignedDownloadUrl, downloadToBuffer } = require('./s3');
 const config = require('./config/oauth');
 const authRoutes = require('./routes/auth');
-const { requireAuth, requireFaculty, requireAdmin } = require('./config/middleware/auth');
+const { createAuthToken, getAuthenticatedUser, requireAuth, requireFaculty, requireAdmin } = require('./config/middleware/auth');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -68,7 +68,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  res.locals.currentUser = req.session?.user || null;
+  res.locals.currentUser = getAuthenticatedUser(req);
   next();
 });
 
@@ -78,7 +78,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/auth', authRoutes);
 
+app.get('/auth/me', (req, res) => {
+  const user = getAuthenticatedUser(req);
+
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Authentication required' });
+  }
+
+  return res.json({ success: true, user });
+});
+
 app.post('/auth/logout', (req, res) => {
+  if (!req.session) {
+    return res.json({ success: true });
+  }
+
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({ success: false, message: 'Logout failed' });
@@ -98,12 +112,15 @@ app.post('/api/admin/login', (req, res) => {
   }
 
   if (username === adminUser && password === adminPass) {
-    req.session.user = {
+    const user = {
       username: adminUser,
       fullName: 'Admin User',
       isAdmin: true
     };
-    return res.json({ success: true });
+
+    req.session.user = user;
+    const token = createAuthToken(user);
+    return res.json({ success: true, token, user });
   }
 
   return res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -580,16 +597,20 @@ app.get('/', (req, res) => {
 });
 
 app.get('/user-dashboard', requireAuth, (req, res) => {
+  const user = req.user || req.session.user;
+
   res.json({
-    message: `Welcome ${req.session.user.fullName || req.session.user.username}`,
-    user: req.session.user
+    message: `Welcome ${user.fullName || user.username}`,
+    user
   });
 });
 
 app.get('/faculty-application', requireAuth, requireFaculty, (req, res) => {
+  const user = req.user || req.session.user;
+
   res.json({
-    message: `Welcome ${req.session.user.fullName || req.session.user.username} to Faculty Application Portal`,
-    user: req.session.user
+    message: `Welcome ${user.fullName || user.username} to Faculty Application Portal`,
+    user
   });
 });
 

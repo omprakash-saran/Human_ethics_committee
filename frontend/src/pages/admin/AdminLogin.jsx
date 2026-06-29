@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './AdminLogin.module.css';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+import { apiFetch, setAuthToken } from '../../utils/api';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -17,12 +16,10 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      // Try both possible endpoints (check which one your backend uses)
-      const res = await fetch(`${apiBaseUrl}/api/admin/login`, {
+      const res = await apiFetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include'
+        body: JSON.stringify({ username, password })
       });
 
       // Log the response for debugging
@@ -31,8 +28,8 @@ export default function AdminLogin() {
       const data = await res.json();
       console.log('Login response data:', data);
 
-      if (res.ok && data.success) {
-        // Store something to indicate login (optional, depends on your backend)
+      if (res.ok && data.success && data.token) {
+        setAuthToken(data.token);
         localStorage.setItem('isAdminLoggedIn', 'true');
         navigate('/admin/dashboard');
         return;

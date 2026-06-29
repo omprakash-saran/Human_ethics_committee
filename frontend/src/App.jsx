@@ -10,6 +10,7 @@ import Downloads from './pages/downloads/Downloads';
 import Resources from './pages/resources/Resources';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AuthCallback from './pages/auth/AuthCallback';
 
   const App = () => {
 
@@ -22,6 +23,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
           <Route path="/committee" element={<Committee/>} />
           <Route path="/human-ethics" element={<HumanEthics/>} />
           <Route path="/applications" element={<Applications/>} />
+          <Route path="/auth/callback" element={<AuthCallback/>} />
           <Route path="/downloads" element={<Downloads/>} />
           <Route path="/resources" element={<Resources/>} />
           <Route path="/admin/login" element={<AdminLogin/>} />

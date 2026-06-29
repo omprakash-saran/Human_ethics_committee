@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './AdminDashboard.module.css';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+import { apiFetch, clearAuthToken } from '../../utils/api';
 
 export default function AdminDashboard() {
   const [proposals, setProposals] = useState([]);
@@ -15,11 +14,12 @@ export default function AdminDashboard() {
     setError('');
 
     try {
-      const res = await fetch(`${apiBaseUrl}/api/admin/proposals`, {
-        credentials: 'include'
+      const res = await apiFetch('/api/admin/proposals', {
+        onUnauthorized: () => navigate('/admin/login')
       });
 
       if (res.status === 403 || res.status === 401) {
+        clearAuthToken();
         navigate('/admin/login');
         return;
       }
@@ -31,7 +31,7 @@ export default function AdminDashboard() {
       }
 
       setProposals(data.data || []);
-    } catch (err) {
+    } catch {
       setError('Unable to load proposals');
     } finally {
       setIsLoading(false);
@@ -45,11 +45,12 @@ export default function AdminDashboard() {
   const handleDownload = async (proposalId) => {
     setError('');
     try {
-      const res = await fetch(`${apiBaseUrl}/api/admin/proposals/${proposalId}/download`, {
-        credentials: 'include'
+      const res = await apiFetch(`/api/admin/proposals/${proposalId}/download`, {
+        onUnauthorized: () => navigate('/admin/login')
       });
 
       if (res.status === 403 || res.status === 401) {
+        clearAuthToken();
         navigate('/admin/login');
         return;
       }
@@ -61,7 +62,7 @@ export default function AdminDashboard() {
       }
 
       window.open(data.url, '_blank', 'noopener,noreferrer');
-    } catch (err) {
+    } catch {
       setError('Unable to generate download link');
     }
   };
@@ -69,16 +70,15 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     try {
       // ✅ FIXED: Added /api prefix
-      await fetch(`${apiBaseUrl}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
+      await apiFetch('/auth/logout', {
+        method: 'POST'
       });
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      // Clear any local storage/session storage if used
-      localStorage.removeItem('adminAuth'); // If you're using localStorage
-      sessionStorage.removeItem('adminAuth'); // If you're using sessionStorage
+      clearAuthToken();
+      localStorage.removeItem('adminAuth');
+      sessionStorage.removeItem('adminAuth');
       navigate('/admin/login');
     }
   };

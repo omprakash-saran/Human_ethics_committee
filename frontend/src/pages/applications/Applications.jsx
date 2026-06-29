@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import styles from './Applications.module.css';
+import { API_BASE_URL, apiFetch, clearAuthToken } from '../../utils/api';
 
 export default function Applications() {
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
   const [activeTab, setActiveTab] = useState('new');
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -26,14 +26,12 @@ export default function Applications() {
 
     const checkSession = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/user-dashboard`, {
-          credentials: 'include'
-        });
+        const response = await apiFetch('/auth/me');
 
         if (isMounted) {
           setIsAuthenticated(response.ok);
         }
-      } catch (error) {
+      } catch {
         if (isMounted) {
           setIsAuthenticated(false);
         }
@@ -49,21 +47,21 @@ export default function Applications() {
     return () => {
       isMounted = false;
     };
-  }, [apiBaseUrl]);
+  }, []);
 
   const handleLogin = () => {
-    window.location.href = `${apiBaseUrl}/auth/omniport/login`;
+    window.location.href = `${API_BASE_URL}/auth/omniport/login`;
   };
 
   const handleLogout = async () => {
     try {
-      await fetch(`${apiBaseUrl}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
+      await apiFetch('/auth/logout', {
+        method: 'POST'
       });
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
+      clearAuthToken();
       setIsAuthenticated(false);
     }
   };
@@ -161,10 +159,9 @@ export default function Applications() {
 
         console.log('Submitting new research proposal...'); 
 
-        const response = await fetch(`${apiBaseUrl}/api/proposals`, {
+        const response = await apiFetch('/api/proposals', {
           method: 'POST',
-          body: formDataToSend,
-          credentials: 'include'
+          body: formDataToSend
         });
 
         const data = await response.json();
@@ -209,10 +206,9 @@ export default function Applications() {
 
         console.log('Submitting updated research proposal...'); 
 
-        const response = await fetch(`${apiBaseUrl}/api/proposals/resubmit`, {
+        const response = await apiFetch('/api/proposals/resubmit', {
           method: 'POST',
-          body: formDataToSend,
-          credentials: 'include'
+          body: formDataToSend
         });
 
         const data = await response.json();

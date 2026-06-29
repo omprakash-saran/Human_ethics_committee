@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const { omniportBaseUrl, clientId, clientSecret, redirectUri, frontendUrl } = require('../config/oauth');
+const { createAuthToken } = require('../config/middleware/auth');
 
 const router = express.Router();
 
@@ -74,14 +75,17 @@ router.get('/omniport/callback', async (req, res) => {
     }
 
 
-    req.session.user = {
+    const user = {
       userId: profile?.userId,
       username: profile?.username,
       fullName: profile?.person?.fullName || '',
       roles
     };
 
-    return res.redirect(`${frontendUrl}/applications`);
+    req.session.user = user;
+
+    const token = createAuthToken(user);
+    return res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}`);
   } catch (error) {
     console.error('Omniport OAuth callback error:', error);
     return res.status(500).send('OAuth login failed.');
@@ -89,6 +93,10 @@ router.get('/omniport/callback', async (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
+  if (!req.session) {
+    return res.status(200).json({ success: true });
+  }
+
   req.session.destroy(() => {
     res.clearCookie('connect.sid');
     res.status(200).json({ success: true });
