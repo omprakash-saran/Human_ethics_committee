@@ -10,3 +10,46 @@
     margin-top: 5rem;
     font-weight: bolder;
 }
+
+.volunteerSection {
+    margin: 24px auto 0;
+    max-width: 1100px;
+    padding: 0 16px;
+}
+
+.volunteerGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.volunteerCard {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    padding: 18px;
+    text-align: center;
+    backdrop-filter: blur(6px);
+}
+
+.volunteerCard h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.volunteerCard a {
+    color: inherit;
+    text-decoration: underline;
+    word-break: break-word;
+}
+
+.volunteerEmail {
+    color: inherit;
+    text-decoration: underline;
+    word-break: break-word;
+    cursor: text;
+    user-select: text;
+    margin: 0;
+}
+

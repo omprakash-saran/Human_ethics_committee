@@ -34,6 +34,34 @@
     margin: 4px 0;
     font-size: 14px;
   }
+
+    .quickLink {
+      display: block;
+      margin: 4px 0;
+      font-size: 14px;
+      color: var(--secondary-color);
+      text-decoration: none;
+      width: fit-content;
+    }
+
+    .quickLink:hover {
+      color: #4f4993;
+      text-decoration: underline;
+    }
+
+    .locationLink {
+      display: block;
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--secondary-color);
+      text-decoration: none;
+      line-height: 1.5;
+    }
+
+    .locationLink:hover {
+      color: #4f4993;
+      text-decoration: underline;
+    }
   
   .lowerLine {
     text-align: center;

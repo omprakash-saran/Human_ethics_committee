@@ -7,6 +7,24 @@ import { CommitteeData } from './CommitteeData';
 const Committee = () => {
   const topMembers = CommitteeData.slice(0, 2);    
   const otherMembers = CommitteeData.slice(2);    
+  const volunteers = [
+    {
+      name: 'Sakshima Mishra',
+      email: 'sakshima_m@hs.iitr.ac.in'
+    },
+    {
+      name: 'Abhishek Karmakar',
+      email: 'abhishek_k1@hs.iitr.ac.in'
+    },
+    {
+      name: 'Dipti Singh',
+      email: 'dipti_s@hs.iitr.ac.in'
+    },
+    {
+      name: 'Vrashal Verma',
+      email: 'vrashal_v@design.iitr.ac.in'
+    }
+  ];
 
   return (
     <div className={`${styles.container}`}>
@@ -31,6 +49,20 @@ const Committee = () => {
           ))}
         </div>
 
+      </div>
+
+      <div className={`${styles.title}`} id="volunteers">
+        <h2 className={`${styles.heading}`}>Volunteers</h2>
+        <div className={styles.volunteerSection}>
+          <div className={styles.volunteerGrid}>
+            {volunteers.map((volunteer) => (
+              <div key={volunteer.email} className={styles.volunteerCard}>
+                <h3>{volunteer.name}</h3>
+                <p className={styles.volunteerEmail}>{volunteer.email}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className={`${styles.title}`}>

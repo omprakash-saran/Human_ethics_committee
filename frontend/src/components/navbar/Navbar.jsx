@@ -35,6 +35,12 @@ const Navbar = () => {
     const [flag, setFlag] = useState(-1);
     const [isOpen, setIsOpen] = useState(false);
     const [isSmallDisplay, setIsSmallDisplay] = useState(false);
+    const handleSamePageTopClick = (targetPath) => (event) => {
+        if (window.location.pathname === targetPath) {
+            event.preventDefault();
+            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        }
+    };
 
     const documents = [
         {
@@ -107,13 +113,14 @@ const Navbar = () => {
             {!isSmallDisplay && (
                 <nav className={styles.nav2}>
                     <ul className={styles.seminav}>
-                        <li onMouseEnter={() => setFlag(0)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/about'>About</NavLink></li>
+                        <li onMouseEnter={() => setFlag(null)}><NavLink onClick={handleSamePageTopClick('/')} className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/'>Home</NavLink></li>
+                        <li onMouseEnter={() => setFlag(0)}><NavLink onClick={handleSamePageTopClick('/about')} className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/about'>About</NavLink></li>
                         <li onMouseEnter={() => setFlag(1)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/events'>Events</NavLink></li>
-                        <li onMouseEnter={() => setFlag(2)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/committee'>Committee</NavLink></li>
+                        <li onMouseEnter={() => setFlag(2)}><NavLink onClick={handleSamePageTopClick('/committee')} className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/committee'>Committee</NavLink></li>
                         <li onMouseEnter={() => setFlag(3)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/human-ethics'>Human ethics</NavLink></li>
                         <li onMouseEnter={() => setFlag(4)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/applications'>Applications</NavLink></li>
                         <li onMouseEnter={() => setFlag(5)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/downloads'>Downloads</NavLink></li>
-                        <li onMouseEnter={() => setFlag(6)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/resources'>Resources</NavLink></li>
+                        <li onMouseEnter={() => setFlag(6)}><NavLink onClick={handleSamePageTopClick('/resources')} className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/resources'>Resources</NavLink></li>
                         <li onMouseEnter={() => setFlag(null)}><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/admin/login'>Admin</NavLink></li>
                     </ul>
 
@@ -253,7 +260,11 @@ const Navbar = () => {
                     <ul className={styles.seminav2}>
 
                         <details className={styles.dropdown}>
-                            <summary><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/about'>About</NavLink></summary>
+                            <summary><NavLink onClick={handleSamePageTopClick('/')} className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/'>Home</NavLink></summary>
+                        </details>
+
+                        <details className={styles.dropdown}>
+                            <summary><NavLink onClick={handleSamePageTopClick('/about')} className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/about'>About</NavLink></summary>
                         </details>
 
                         <details className={styles.dropdown}>
@@ -277,7 +288,7 @@ const Navbar = () => {
                         </details>
 
                         <details className={styles.dropdown}>
-                            <summary><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/committee'>Committee</NavLink></summary>
+                            <summary><NavLink onClick={handleSamePageTopClick('/committee')} className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/committee'>Committee</NavLink></summary>
                             <div className={styles.content}>
                                 <div className={styles.box}>
                                     <h4>Current Committee Members</h4>
@@ -356,7 +367,7 @@ const Navbar = () => {
                         </details>
 
                         <details className={styles.dropdown}>
-                            <summary><NavLink className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/resources'>Resources</NavLink></summary>
+                            <summary><NavLink onClick={handleSamePageTopClick('/resources')} className={({ isActive }) =>`${styles.navItem} ${isActive ? styles.active : ''}`} to='/resources'>Resources</NavLink></summary>
                             <div className={styles.content}>
                                 <div className={styles.box}>
                                     <h4>Bio Safety</h4>
