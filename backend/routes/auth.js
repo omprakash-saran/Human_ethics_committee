@@ -26,7 +26,7 @@ router.get('/omniport/login', (req, res) => {
   });
 });
 
-router.get('/omniport/callback', async (req, res) => {
+router.get('/callback', async (req, res) => {
   try {
     const { code, state } = req.query;
 
