@@ -76,7 +76,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 
 app.get('/auth/me', (req, res) => {
   const user = getAuthenticatedUser(req);

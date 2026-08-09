@@ -5,7 +5,7 @@ const { createAuthToken } = require('../config/middleware/auth');
 
 const router = express.Router();
 
-router.get('/login', (req, res) => {
+router.get('/omniport/login', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.oauthState = state;
 
@@ -26,7 +26,7 @@ router.get('/login', (req, res) => {
   });
 });
 
-router.get('/callback', async (req, res) => {
+router.get('/omniport/callback', async (req, res) => {
   try {
     const { code, state } = req.query;
 
