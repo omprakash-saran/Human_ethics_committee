@@ -50,7 +50,7 @@ export default function Applications() {
   }, []);
 
   const handleLogin = () => {
-    window.location.href = `${API_BASE_URL}/auth/omniport/login`;
+    window.location.href = `${API_BASE_URL}/api/auth/omniport/login`;
   };
 
   const handleLogout = async () => {
