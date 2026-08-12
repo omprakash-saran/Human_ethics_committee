@@ -159,7 +159,7 @@ export default function Applications() {
 
         console.log('Submitting new research proposal...'); 
 
-        const response = await apiFetch('/api/proposals', {
+        const response = await apiFetch('/proposals', {
           method: 'POST',
           body: formDataToSend
         });
@@ -206,7 +206,7 @@ export default function Applications() {
 
         console.log('Submitting updated research proposal...'); 
 
-        const response = await apiFetch('/api/proposals/resubmit', {
+        const response = await apiFetch('/proposals/resubmit', {
           method: 'POST',
           body: formDataToSend
         });

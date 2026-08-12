@@ -14,7 +14,7 @@ export default function AdminDashboard() {
     setError('');
 
     try {
-      const res = await apiFetch('/api/admin/proposals', {
+      const res = await apiFetch('/admin/proposals', {
         onUnauthorized: () => navigate('/admin/login')
       });
 
