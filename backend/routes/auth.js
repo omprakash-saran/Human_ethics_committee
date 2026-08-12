@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const { omniportBaseUrl, clientId, clientSecret, redirectUri, frontendUrl } = require('../config/oauth');
-const { createAuthToken } = require('../config/middleware/auth');
+const { createAuthToken, getAuthenticatedUser } = require('../config/middleware/auth');
 
 const router = express.Router();
 
@@ -74,7 +74,6 @@ router.get('/callback', async (req, res) => {
       return res.status(403).send('Access denied: only faculty members can log in.');
     }
 
-
     const user = {
       userId: profile?.userId,
       username: profile?.username,
@@ -90,6 +89,16 @@ router.get('/callback', async (req, res) => {
     console.error('Omniport OAuth callback error:', error);
     return res.status(500).send('OAuth login failed.');
   }
+});
+
+router.get('/me', (req, res) => {
+  const user = getAuthenticatedUser(req);
+
+  if (!user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  return res.status(200).json({ user });
 });
 
 router.post('/logout', (req, res) => {
