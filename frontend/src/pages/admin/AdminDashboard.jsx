@@ -45,7 +45,7 @@ export default function AdminDashboard() {
   const handleDownload = async (proposalId) => {
     setError('');
     try {
-      const res = await apiFetch(`/api/admin/proposals/${proposalId}/download`, {
+      const res = await apiFetch(`/admin/proposals/${proposalId}/download`, {
         onUnauthorized: () => navigate('/admin/login')
       });
 
