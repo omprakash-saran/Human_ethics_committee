@@ -1,5 +1,18 @@
-.title{
+.title {
     font-size: var(--font-size-section-title);
     font-weight: var(--font-weight-semibold);
     padding: 10px;
+}
+
+
+.meeting {
+    padding: 0 10px;
+}
+
+.meetingHeading {
+    font-weight: var(--font-weight-semibold);
+}
+
+.meetingDate {
+    color: #767676b0;
 }
