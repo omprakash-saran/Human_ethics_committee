@@ -1,8 +1,8 @@
 export const CommitteeData = [
   {
-    name: "Prof. Shailendra Handu",
-    gender:"male",
-    position: "Chairman",
+    name: "Dr. Shailendra Handu",
+    gender: "male",
+    position: "Chair Person - Basic Medical Scientist",
     jobPost: "Pharmacology, AIIMS Rishikesh",
     phone: "x",
     email: "x",
@@ -15,8 +15,8 @@ export const CommitteeData = [
     }
   },
   {
-    name: "Prof. Manish Kumar Asthana",
-    gender:"male",
+    name: "Dr. Manish Kumar Asthana",
+    gender: "male",
     position: "Member Secretary",
     jobPost: "Proff. Deptt. of HSS",
     phone: "01332-28-4916",
@@ -31,7 +31,7 @@ export const CommitteeData = [
   },
   {
     name: "Dr. Sujata Kashyap",
-    gender:"female",
+    gender: "female",
     position: "Scientific Member",
     jobPost: "x",
     phone: "x",
@@ -45,9 +45,9 @@ export const CommitteeData = [
     }
   },
   {
-    name: "Prof. Anuj Sharma",
-    gender:"male",
-    position: "Member",
+    name: "Dr. Anuj Sharma",
+    gender: "male",
+    position: "Scientific Member",
     jobPost: "Deptt. of Chemistry",
     phone: "x",
     email: "x",
@@ -60,9 +60,9 @@ export const CommitteeData = [
     }
   },
   {
-    name: "Prof. Rajesh Kumar",
-    gender:"male",
-    position: "Member",
+    name: "Dr. Rajesh Kumar",
+    gender: "male",
+    position: "Scientific Member",
     jobPost: "Deptt. of BSBE",
     phone: "x",
     email: "x",
@@ -75,9 +75,9 @@ export const CommitteeData = [
     }
   },
   {
-    name: "Prof. Premalata Jena",
-    gender:"female",
-    position: "Member",
+    name: "Dr. Premalata Jena",
+    gender: "female",
+    position: "Scientific Member",
     jobPost: "Deptt. of Electrical Engg.",
     phone: "x",
     email: "x",
@@ -90,10 +90,10 @@ export const CommitteeData = [
     }
   },
   {
-    name: "Chief Medical Officer",
-    gender:"male",
-    position: "Member",
-    jobPost: "Institute Hospital",
+    name: "Mr. Munendra Kumar Jha",
+    gender: "male",
+    position: "Clinician",
+    jobPost: "x",
     phone: "x",
     email: "x",
     address: "x",
@@ -105,9 +105,9 @@ export const CommitteeData = [
     }
   },
   {
-    name: "prof. Puneet Dhamija",
-    gender:"male",
-    position: "Member",
+    name: "Dr. Puneet Dhamija",
+    gender: "male",
+    position: "Basic Medical Scientist",
     jobPost: "Medical Officer, AIIMS Rishikesh",
     phone: "x",
     email: "x",
@@ -120,9 +120,9 @@ export const CommitteeData = [
     }
   },
   {
-    name: "Prof. Madhulika",
-    gender:"female",
-    position: "Member",
+    name: "Dr. Madhulika Chaudhary",
+    gender: "female",
+    position: "Basic Medical Scientist",
     jobPost: "Hitech Pathology Lab, Roorkee",
     phone: "x",
     email: "x",
@@ -135,10 +135,10 @@ export const CommitteeData = [
     }
   },
   {
-    name: "Mrs. Neetu Singh",
-    gender:"female",
-    position: "Member",
-    jobPost: "Legal Expert",
+    name: "Ms. Neetu Singh",
+    gender: "female",
+    position: "Legal Expert",
+    jobPost: "x",
     phone: "x",
     email: "x",
     address: "New Chambers Block Chamber No. 21 High Court of Uttarakhand, Nainital",
@@ -150,9 +150,9 @@ export const CommitteeData = [
     }
   },
   {
-    name: "Prof. Ram Manohar Singh",
-    gender:"male",
-    position: "Member",
+    name: "Dr. Ram Manohar Singh",
+    gender: "male",
+    position: "Social Scientist",
     jobPost: "Deptt. of HSS",
     phone: "x",
     email: "x",
@@ -165,9 +165,9 @@ export const CommitteeData = [
     }
   },
   {
-    name: "Prof. Kawaljit Kaur",
-    gender:"female",
-    position: "Member",
+    name: "Ms. Kawaljit Kaur",
+    gender: "female",
+    position: "Lay Person",
     jobPost: "Principal, Adarsh Bal Niketan, Roorkee",
     phone: "x",
     email: "x",

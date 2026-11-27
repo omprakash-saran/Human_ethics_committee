@@ -26,14 +26,14 @@ const SecondaryTabsLetter = () => {
         <div ref={lineRef} className={`${styles.line} ${styles.line2}`}></div>
       </div>
       <div className={`${styles.content_box}`}>
-        <div className={`${styles.content} ${flag === 0 ? styles.show : ''}`}> 
-          <object class={styles.pdf} 
-            data="/docs/CurrentCommitteeMembers1.pdf"
+        <div className={`${styles.content} ${flag === 0 ? styles.show : ''}`}>
+          <object class={styles.pdf}
+            data="/docs/IHEC_Members.pdf"
             height="800">
           </object>
         </div>
-        <div className={`${styles.content} ${flag === 1 ? styles.show : ''}`}> 
-          <object class={styles.pdf} 
+        <div className={`${styles.content} ${flag === 1 ? styles.show : ''}`}>
+          <object class={styles.pdf}
             data="/docs/PastCommitteeMembers.pdf"
             height="800">
           </object>
